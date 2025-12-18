@@ -41,7 +41,7 @@ class PaginationView(View):
         return self.embed_generator(page_items, self.current_page, self.total_pages)
 
     @button(label="◀️ Prev", style=ButtonStyle.secondary, custom_id="prev")
-    async def prev_button(self, interaction: Interaction) -> None:
+    async def prev_button(self, button: Button, interaction: Interaction) -> None:
         if self.current_page > 1:
             self.current_page -= 1
             self._update_buttons()
@@ -53,7 +53,7 @@ class PaginationView(View):
             await interaction.response.defer()
 
     @button(label="Next ▶️", style=ButtonStyle.secondary, custom_id="next")
-    async def next_button(self, interaction: Interaction) -> None:
+    async def next_button(self, button: Button, interaction: Interaction) -> None:
         if self.current_page < self.total_pages:
             self.current_page += 1
             self._update_buttons()
@@ -199,13 +199,13 @@ class ConfirmView(View):
                     child.label = self._cancel_label
 
     @button(label="Confirm", style=ButtonStyle.success, custom_id="confirm")
-    async def confirm_btn(self, interaction: Interaction) -> None:
+    async def confirm_btn(self, button: Button, interaction: Interaction) -> None:
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         await self.confirm_callback(interaction)
 
     @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel")
-    async def cancel_btn(self, interaction: Interaction) -> None:
+    async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         if self.cancel_callback:
@@ -228,13 +228,13 @@ class RequestActionView(View):
         self.deny_callback = deny_callback
 
     @button(label="Approve", style=ButtonStyle.success, emoji="✅", custom_id="approve")
-    async def approve_btn(self, interaction: Interaction) -> None:
+    async def approve_btn(self, button: Button, interaction: Interaction) -> None:
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         await self.approve_callback(interaction, self.request_id)
 
     @button(label="Deny", style=ButtonStyle.danger, emoji="❌", custom_id="deny")
-    async def deny_btn(self, interaction: Interaction) -> None:
+    async def deny_btn(self, button: Button, interaction: Interaction) -> None:
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         await self.deny_callback(interaction, self.request_id)

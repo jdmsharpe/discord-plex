@@ -35,7 +35,6 @@ from .models import CachedMedia, MediaType, OverseerrSearchResult
 from .overseerr_client import OverseerrClient
 from .plex_client import PlexClientWrapper
 from .views import (
-    PaginationView,
     MediaSelectView,
     RequestSelectView,
     ConfirmView,
@@ -166,71 +165,37 @@ class PlexCog(commands.Cog):
             )
             return
 
-        # Create paginated embed
-        def create_embed(items: list[CachedMedia], page: int, total: int) -> Embed:
-            embed = Embed(
-                title=f'🔍 Search results for "{query}"',
-                color=PLEX_COLOR,
-            )
-            lines = []
-            start_idx = (page - 1) * 10 + 1
-            for i, media in enumerate(items, start=start_idx):
-                year_str = f" ({media.year})" if media.year else ""
-                lines.append(f"**{i}.** {media.type_emoji} {media.title}{year_str}")
-            embed.description = "\n".join(lines)
-            embed.set_footer(
-                text=f"Page {page} of {total} • Use /plex info <title> for details"
-            )
-            return embed
-
-        view = PaginationView(results, per_page=10, embed_generator=create_embed)
-        await ctx.send_followup(embed=view.get_current_embed(), view=view)
-
-    @plex.command(name="info", description="Get detailed info about a media item")
-    @option("title", description="Title to search for", required=True)
-    async def plex_info(self, ctx: ApplicationContext, title: str) -> None:
-        """Get detailed information about a media item."""
-        await ctx.defer()
-
-        # Search for the title
-        results = self.cache.search(title, limit=5)
-
-        if not results:
-            # Try direct Plex search
-            loop = asyncio.get_event_loop()
-            results = await loop.run_in_executor(
-                None,
-                lambda: self.plex_client.search(title, limit=5),
-            )
-
-        if not results:
-            await ctx.send_followup(
-                embed=create_error_embed(f'No results found for "{title}"')
-            )
+        # Single result - show details directly
+        if len(results) == 1:
+            await self._show_media_info(ctx, results[0])
             return
 
-        if len(results) == 1:
-            # Single result, show info directly
-            await self._show_media_info(ctx, results[0])
-        else:
-            # Multiple results, show selection
-            async def on_select(interaction: Interaction, media: CachedMedia) -> None:
-                await interaction.response.defer()
-                await self._show_media_info(ctx, media, followup=True)
+        # Multiple results - show list with select menu
+        # Create embed showing results
+        embed = Embed(
+            title=f'🔍 Search results for "{query}"',
+            color=PLEX_COLOR,
+        )
+        lines = []
+        # Limit to 25 for select menu (Discord limit)
+        display_results = results[:25]
+        for i, media in enumerate(display_results, start=1):
+            year_str = f" ({media.year})" if media.year else ""
+            lines.append(f"**{i}.** {media.type_emoji} {media.title}{year_str}")
+        embed.description = "\n".join(lines)
+        embed.set_footer(text=f"Found {len(results)} results • Select one below for details")
 
-            view = MediaSelectView(
-                results,
-                callback=on_select,
-                placeholder="Select media to view details...",
-            )
-            await ctx.send_followup(
-                embed=Embed(
-                    title="Multiple matches found",
-                    description="Select the media you want to view:",
-                    color=PLEX_COLOR,
-                ),
-                view=view,
-            )
+        # Add select menu for viewing details
+        async def on_select(interaction: Interaction, media: CachedMedia) -> None:
+            await interaction.response.defer()
+            await self._show_media_info(ctx, media, followup=True)
+
+        view = MediaSelectView(
+            display_results,
+            callback=on_select,
+            placeholder="Select media for details...",
+        )
+        await ctx.send_followup(embed=embed, view=view)
 
     async def _show_media_info(
         self,
@@ -351,6 +316,7 @@ class PlexCog(commands.Cog):
         """Search Overseerr/TMDB for media to request."""
         await ctx.defer()
 
+        self.logger.info(f"Request search by {ctx.author}: query='{query}', type={media_type or 'any'}")
         results = await self.overseerr_client.search(query)
 
         # Filter by type if specified
@@ -404,6 +370,10 @@ class PlexCog(commands.Cog):
         result: OverseerrSearchResult,
     ) -> None:
         """Handle when user selects a search result."""
+        self.logger.info(
+            f"User {ctx.author} selected: {result.title} ({result.year}) "
+            f"[tmdb:{result.tmdb_id}, type:{result.media_type}]"
+        )
         embed = create_search_result_embed(result)
 
         if result.already_available:
@@ -444,12 +414,20 @@ class PlexCog(commands.Cog):
         result: OverseerrSearchResult,
     ) -> None:
         """Create a request in Overseerr."""
+        self.logger.info(
+            f"Creating request: {result.title} ({result.year}) "
+            f"[tmdb:{result.tmdb_id}, type:{result.media_type}] by {ctx.author}"
+        )
         request = await self.overseerr_client.create_request(
             media_type=result.media_type,
             tmdb_id=result.tmdb_id,
         )
 
         if request:
+            self.logger.info(
+                f"Request created successfully: {result.title} "
+                f"[request_id:{request.request_id}, status:{request.status.value}]"
+            )
             embed = create_success_embed(
                 f"**{result.title}** has been requested!\n\n"
                 f"You'll be notified when it's available.",
@@ -476,6 +454,7 @@ class PlexCog(commands.Cog):
                         view=view,
                     )
         else:
+            self.logger.error(f"Failed to create request for {result.title} [tmdb:{result.tmdb_id}]")
             await ctx.send_followup(
                 embed=create_error_embed(
                     "Failed to submit request. Please try again later."
@@ -544,24 +523,30 @@ class PlexCog(commands.Cog):
 
     async def _approve_request(self, interaction: Interaction, request_id: int) -> None:
         """Callback for approve button."""
+        self.logger.info(f"Approving request #{request_id} by {interaction.user}")
         success = await self.overseerr_client.approve_request(request_id)
         if success:
+            self.logger.info(f"Request #{request_id} approved successfully")
             await interaction.followup.send(
                 embed=create_success_embed(f"Request #{request_id} has been approved!")
             )
         else:
+            self.logger.error(f"Failed to approve request #{request_id}")
             await interaction.followup.send(
                 embed=create_error_embed(f"Failed to approve request #{request_id}")
             )
 
     async def _deny_request(self, interaction: Interaction, request_id: int) -> None:
         """Callback for deny button."""
+        self.logger.info(f"Denying request #{request_id} by {interaction.user}")
         success = await self.overseerr_client.decline_request(request_id)
         if success:
+            self.logger.info(f"Request #{request_id} denied successfully")
             await interaction.followup.send(
                 embed=create_success_embed(f"Request #{request_id} has been denied.")
             )
         else:
+            self.logger.error(f"Failed to deny request #{request_id}")
             await interaction.followup.send(
                 embed=create_error_embed(f"Failed to deny request #{request_id}")
             )
@@ -607,7 +592,6 @@ class PlexCog(commands.Cog):
     # ==================== Error Handlers ====================
 
     @plex_search.error
-    @plex_info.error
     @plex_playing.error
     @plex_recent.error
     @plex_stats.error
