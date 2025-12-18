@@ -254,10 +254,18 @@ class OverseerrClient:
             "mediaId": tmdb_id,
         }
 
-        if media_type == "tv" and seasons:
-            payload["seasons"] = seasons
+        # For TV shows, we need to specify seasons
+        if media_type == "tv":
+            if seasons:
+                payload["seasons"] = seasons
+            else:
+                # Fetch available seasons and request all of them
+                available_seasons = await self._get_available_seasons(tmdb_id)
+                if available_seasons:
+                    payload["seasons"] = available_seasons
+                    logger.debug(f"Auto-requesting seasons: {available_seasons}")
 
-        logger.info(f"Creating Overseerr request: type={media_type}, tmdb_id={tmdb_id}")
+        logger.info(f"Creating Overseerr request: type={media_type}, tmdb_id={tmdb_id}, seasons={payload.get('seasons', 'N/A')}")
         data = await self._request("POST", endpoint, json=payload)
         if not data:
             logger.error(f"Overseerr request creation failed: type={media_type}, tmdb_id={tmdb_id}")
@@ -310,6 +318,21 @@ class OverseerrClient:
         """Get detailed media info from Overseerr/TMDB."""
         endpoint = f"/{media_type}/{tmdb_id}"
         return await self._request("GET", endpoint)
+
+    async def _get_available_seasons(self, tmdb_id: int) -> list[int]:
+        """Get list of available season numbers for a TV show (excludes season 0/specials)."""
+        details = await self.get_media_details("tv", tmdb_id)
+        if not details:
+            return []
+
+        seasons = []
+        for season in details.get("seasons", []):
+            season_number = season.get("seasonNumber", 0)
+            # Skip specials (season 0)
+            if season_number > 0:
+                seasons.append(season_number)
+
+        return seasons
 
     async def get_poster_url(
         self,

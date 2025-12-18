@@ -40,6 +40,7 @@ from .views import (
     ConfirmView,
     RequestActionView,
     MediaInfoView,
+    SeasonSelectView,
 )
 
 
@@ -397,8 +398,11 @@ class PlexCog(commands.Cog):
                 embed=embed,
                 content="This title has already been requested.",
             )
+        elif result.media_type == "tv":
+            # TV show - let user select seasons
+            await self._show_season_picker(ctx, result, embed)
         else:
-            # Offer to request
+            # Movie - simple confirm
             async def on_confirm(interaction: Interaction) -> None:
                 await self._create_request(ctx, result)
 
@@ -417,19 +421,68 @@ class PlexCog(commands.Cog):
                 view=view,
             )
 
+    async def _show_season_picker(
+        self,
+        ctx: ApplicationContext,
+        result: OverseerrSearchResult,
+        embed: Embed,
+    ) -> None:
+        """Show season selection for TV shows."""
+        # Fetch seasons info from Overseerr
+        details = await self.overseerr_client.get_media_details("tv", result.tmdb_id)
+        if not details or "seasons" not in details:
+            # Fallback: request without seasons (will auto-request all)
+            self.logger.warning(f"Could not fetch seasons for {result.title}, falling back to auto-request")
+            async def on_confirm(interaction: Interaction) -> None:
+                await self._create_request(ctx, result)
+
+            view = ConfirmView(
+                confirm_callback=on_confirm,
+                confirm_label="Request All Seasons",
+            )
+            await ctx.send_followup(
+                embed=embed,
+                content="Would you like to request this series?",
+                view=view,
+            )
+            return
+
+        seasons = details.get("seasons", [])
+
+        async def on_seasons_selected(interaction: Interaction, selected: list[int]) -> None:
+            await self._create_request(ctx, result, seasons=selected)
+
+        async def on_cancel(interaction: Interaction) -> None:
+            await interaction.followup.send("Request cancelled.", ephemeral=True)
+
+        view = SeasonSelectView(
+            seasons=seasons,
+            confirm_callback=on_seasons_selected,
+            cancel_callback=on_cancel,
+        )
+
+        await ctx.send_followup(
+            embed=embed,
+            content="Select which seasons to request:",
+            view=view,
+        )
+
     async def _create_request(
         self,
         ctx: ApplicationContext,
         result: OverseerrSearchResult,
+        seasons: Optional[list[int]] = None,
     ) -> None:
         """Create a request in Overseerr."""
+        seasons_info = f", seasons={seasons}" if seasons else ""
         self.logger.info(
             f"Creating request: {result.title} ({result.year}) "
-            f"[tmdb:{result.tmdb_id}, type:{result.media_type}] by {ctx.author}"
+            f"[tmdb:{result.tmdb_id}, type:{result.media_type}{seasons_info}] by {ctx.author}"
         )
         request = await self.overseerr_client.create_request(
             media_type=result.media_type,
             tmdb_id=result.tmdb_id,
+            seasons=seasons,
         )
 
         if request:

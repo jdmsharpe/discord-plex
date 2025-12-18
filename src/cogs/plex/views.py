@@ -260,3 +260,67 @@ class MediaInfoView(View):
                     emoji="▶️",
                 )
             )
+
+
+class SeasonSelectView(View):
+    """View for selecting which seasons to request for a TV show."""
+
+    def __init__(
+        self,
+        seasons: list[dict],  # List of {"seasonNumber": int, "episodeCount": int}
+        confirm_callback: Callable[[Interaction, list[int]], Any],
+        cancel_callback: Optional[Callable[[Interaction], Any]] = None,
+        timeout: Optional[float] = None,
+    ):
+        super().__init__(timeout=timeout)
+        self.seasons = [s for s in seasons if s.get("seasonNumber", 0) > 0]  # Exclude specials
+        self.confirm_callback = confirm_callback
+        self.cancel_callback = cancel_callback
+        self.selected_seasons: list[int] = []
+
+        # Build season options
+        options = []
+        for season in self.seasons:
+            season_num = season.get("seasonNumber", 0)
+            episode_count = season.get("episodeCount", 0)
+            options.append(
+                SelectOption(
+                    label=f"Season {season_num}",
+                    value=str(season_num),
+                    description=f"{episode_count} episodes",
+                )
+            )
+
+        if options:
+            self.select = Select(
+                placeholder="Select seasons to request...",
+                options=options,
+                min_values=1,
+                max_values=len(options),  # Allow selecting all
+            )
+            self.select.callback = self._handle_select
+            self.add_item(self.select)
+
+    async def _handle_select(self, interaction: Interaction) -> None:
+        """Handle season selection - store selected seasons."""
+        self.selected_seasons = [int(v) for v in self.select.values]
+        # Update the select menu to show selection
+        await interaction.response.defer()
+
+    @button(label="Request Selected", style=ButtonStyle.success, custom_id="confirm", row=1)
+    async def confirm_btn(self, button: Button, interaction: Interaction) -> None:
+        if not self.selected_seasons:
+            await interaction.response.send_message(
+                "Please select at least one season first!", ephemeral=True
+            )
+            return
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        await self.confirm_callback(interaction, self.selected_seasons)
+
+    @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel", row=1)
+    async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        if self.cancel_callback:
+            await self.cancel_callback(interaction)
