@@ -1,0 +1,19 @@
+# Discord
+py-cord~=2.6
+audioop-lts; python_version >= "3.13"
+
+# Plex
+plexapi~=4.15
+
+# HTTP Client
+aiohttp~=3.9
+
+# Fuzzy Search
+rapidfuzz~=3.9
+
+# Environment Variables
+python-dotenv~=1.0
+
+# Testing
+pytest~=8.3
+pytest-asyncio~=0.24
