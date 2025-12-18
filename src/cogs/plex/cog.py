@@ -406,12 +406,8 @@ class PlexCog(commands.Cog):
             async def on_confirm(interaction: Interaction) -> None:
                 await self._create_request(ctx, result)
 
-            async def on_cancel(interaction: Interaction) -> None:
-                await interaction.followup.send("Request cancelled.", ephemeral=True)
-
             view = ConfirmView(
                 confirm_callback=on_confirm,
-                cancel_callback=on_cancel,
                 confirm_label="Request",
             )
 
@@ -452,13 +448,9 @@ class PlexCog(commands.Cog):
         async def on_seasons_selected(interaction: Interaction, selected: list[int]) -> None:
             await self._create_request(ctx, result, seasons=selected)
 
-        async def on_cancel(interaction: Interaction) -> None:
-            await interaction.followup.send("Request cancelled.", ephemeral=True)
-
         view = SeasonSelectView(
             seasons=seasons,
             confirm_callback=on_seasons_selected,
-            cancel_callback=on_cancel,
         )
 
         await ctx.send_followup(

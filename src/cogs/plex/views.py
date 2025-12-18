@@ -172,21 +172,17 @@ class RequestSelectView(View):
 
 
 class ConfirmView(View):
-    """Simple confirm/cancel view."""
+    """Simple confirm view."""
 
     def __init__(
         self,
         confirm_callback: Callable[[Interaction], Any],
-        cancel_callback: Optional[Callable[[Interaction], Any]] = None,
         confirm_label: str = "Confirm",
-        cancel_label: str = "Cancel",
         timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
         self.confirm_callback = confirm_callback
-        self.cancel_callback = cancel_callback
         self._confirm_label = confirm_label
-        self._cancel_label = cancel_label
         self._update_labels()
 
     def _update_labels(self) -> None:
@@ -195,19 +191,11 @@ class ConfirmView(View):
             if isinstance(child, Button):
                 if child.custom_id == "confirm":
                     child.label = self._confirm_label
-                elif child.custom_id == "cancel":
-                    child.label = self._cancel_label
 
     @button(label="Confirm", style=ButtonStyle.success, custom_id="confirm")
     async def confirm_btn(self, button: Button, interaction: Interaction) -> None:
         await interaction.response.defer()
         await self.confirm_callback(interaction)
-
-    @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel")
-    async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
-        await interaction.response.defer()
-        if self.cancel_callback:
-            await self.cancel_callback(interaction)
 
 
 class RequestActionView(View):
@@ -265,18 +253,34 @@ class SeasonSelectView(View):
         self,
         seasons: list[dict],  # List of {"seasonNumber": int, "episodeCount": int}
         confirm_callback: Callable[[Interaction, list[int]], Any],
-        cancel_callback: Optional[Callable[[Interaction], Any]] = None,
         timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
         self.seasons = [s for s in seasons if s.get("seasonNumber", 0) > 0]  # Exclude specials
         self.confirm_callback = confirm_callback
-        self.cancel_callback = cancel_callback
         self.selected_seasons: list[int] = []
+        self.requested_seasons: list[int] = []  # Track already-requested seasons
 
-        # Build season options
+        self._build_select()
+
+    def _build_select(self) -> None:
+        """Build or rebuild the season select menu."""
+        # Remove existing select if present
+        for child in list(self.children):
+            if isinstance(child, Select):
+                self.remove_item(child)
+
+        # Build season options, excluding already-requested seasons
+        available_seasons = [
+            s for s in self.seasons
+            if s.get("seasonNumber", 0) not in self.requested_seasons
+        ]
+
+        if not available_seasons:
+            return
+
         options = []
-        for season in self.seasons:
+        for season in available_seasons:
             season_num = season.get("seasonNumber", 0)
             episode_count = season.get("episodeCount", 0)
             options.append(
@@ -292,15 +296,15 @@ class SeasonSelectView(View):
                 placeholder="Select seasons to request...",
                 options=options,
                 min_values=1,
-                max_values=len(options),  # Allow selecting all
+                max_values=len(options),  # Allow selecting all available
             )
             self.select.callback = self._handle_select
+            # Insert at the beginning so it appears before the button
             self.add_item(self.select)
 
     async def _handle_select(self, interaction: Interaction) -> None:
         """Handle season selection - store selected seasons."""
         self.selected_seasons = [int(v) for v in self.select.values]
-        # Update the select menu to show selection
         await interaction.response.defer()
 
     @button(label="Request Selected", style=ButtonStyle.success, custom_id="confirm", row=1)
@@ -311,10 +315,25 @@ class SeasonSelectView(View):
             )
             return
         await interaction.response.defer()
-        await self.confirm_callback(interaction, self.selected_seasons)
 
-    @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel", row=1)
-    async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
-        await interaction.response.defer()
-        if self.cancel_callback:
-            await self.cancel_callback(interaction)
+        # Store the seasons being requested before callback
+        seasons_to_request = self.selected_seasons.copy()
+
+        # Call the callback with selected seasons
+        await self.confirm_callback(interaction, seasons_to_request)
+
+        # Mark these seasons as requested
+        self.requested_seasons.extend(seasons_to_request)
+        self.selected_seasons = []
+
+        # Rebuild the select menu without the requested seasons
+        self._build_select()
+
+        # Update the view - if there are still seasons available, show updated view
+        if any(s.get("seasonNumber", 0) not in self.requested_seasons for s in self.seasons):
+            await interaction.message.edit(view=self)
+        else:
+            # All seasons have been requested, disable the button
+            self.confirm_btn.disabled = True
+            self.confirm_btn.label = "All Seasons Requested"
+            await interaction.message.edit(view=self)
