@@ -1,13 +1,10 @@
 services:
-  discord-plex:
+  python-bot:
     build: .
     container_name: discord-plex
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      # Webhook listener port (for Overseerr notifications)
-      - "3000:3000"
     networks:
       - default
 

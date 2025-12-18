@@ -30,6 +30,7 @@ from .embeds import (
     create_error_embed,
     create_success_embed,
     PLEX_COLOR,
+    OVERSEERR_COLOR,
 )
 from .models import CachedMedia, MediaType, OverseerrSearchResult
 from .overseerr_client import OverseerrClient
@@ -356,7 +357,7 @@ class PlexCog(commands.Cog):
         # Create results embed
         embed = Embed(
             title=f'🔍 Search results for "{query}"',
-            color=PLEX_COLOR,
+            color=OVERSEERR_COLOR,
         )
         lines = []
         for i, result in enumerate(results[:10], start=1):
@@ -486,7 +487,7 @@ class PlexCog(commands.Cog):
                 embed=Embed(
                     title="📋 Your Requests",
                     description="No requests found.",
-                    color=PLEX_COLOR,
+                    color=OVERSEERR_COLOR,
                 )
             )
             return
