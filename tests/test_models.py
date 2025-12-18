@@ -88,6 +88,39 @@ class TestCachedMedia(unittest.TestCase):
         )
         self.assertIsNone(media.duration_formatted)
 
+    def test_tmdb_id_field(self):
+        media = CachedMedia(
+            rating_key="123",
+            title="Test Movie",
+            year=2024,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            tmdb_id=12345,
+        )
+        self.assertEqual(media.tmdb_id, 12345)
+
+    def test_imdb_id_field(self):
+        media = CachedMedia(
+            rating_key="123",
+            title="Test Movie",
+            year=2024,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            imdb_id="tt1234567",
+        )
+        self.assertEqual(media.imdb_id, "tt1234567")
+
+    def test_external_ids_default_none(self):
+        media = CachedMedia(
+            rating_key="123",
+            title="Test",
+            year=2024,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+        )
+        self.assertIsNone(media.tmdb_id)
+        self.assertIsNone(media.imdb_id)
+
 
 class TestActiveStream(unittest.TestCase):
     def test_progress_bar(self):
