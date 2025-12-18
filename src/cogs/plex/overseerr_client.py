@@ -311,6 +311,17 @@ class OverseerrClient:
         endpoint = f"/{media_type}/{tmdb_id}"
         return await self._request("GET", endpoint)
 
+    async def get_poster_url(
+        self,
+        media_type: str,
+        tmdb_id: int,
+    ) -> Optional[str]:
+        """Get TMDB poster URL for a media item."""
+        details = await self.get_media_details(media_type, tmdb_id)
+        if details and details.get("posterPath"):
+            return f"https://image.tmdb.org/t/p/w500{details['posterPath']}"
+        return None
+
     async def get_users(self) -> list[dict]:
         """Get list of Overseerr users."""
         data = await self._request("GET", "/user", params={"take": 100})
