@@ -14,8 +14,7 @@ from config.auth import (
     OVERSEERR_API_KEY,
     GUILD_IDS,
     CACHE_REFRESH_MINUTES,
-    ADMIN_ROLE_ID,
-    REQUEST_CHANNEL_ID,
+    ADMIN_USER_ID,
 )
 from .cache import LibraryCache
 from .embeds import (
@@ -48,15 +47,13 @@ logger = logging.getLogger(__name__)
 
 
 def is_admin():
-    """Check if user has admin role."""
+    """Check if user is the configured admin."""
 
     async def predicate(ctx: ApplicationContext) -> bool:
-        if ADMIN_ROLE_ID is None:
-            return True  # No admin role configured, allow all
+        if ADMIN_USER_ID is None:
+            return True  # No admin user configured, allow all
         member = cast(Member, ctx.author)
-        if member.guild_permissions.administrator:
-            return True
-        return any(role.id == ADMIN_ROLE_ID for role in member.roles)
+        return member.id == ADMIN_USER_ID
 
     return commands.check(predicate)  # type: ignore[arg-type]
 
@@ -447,24 +444,6 @@ class PlexCog(commands.Cog):
             )
             await ctx.send_followup(embed=embed)
 
-            # Notify admin channel if configured
-            if REQUEST_CHANNEL_ID:
-                channel = self.bot.get_channel(REQUEST_CHANNEL_ID)
-                if channel and isinstance(channel, Messageable):
-                    admin_embed = create_request_embed(request)
-                    admin_embed.title = f"📥 New Request: {result.title}"
-
-                    view = RequestActionView(
-                        request.request_id,
-                        approve_callback=self._approve_request,
-                        deny_callback=self._deny_request,
-                    )
-
-                    await channel.send(
-                        content=f"Requested by {ctx.author.mention}",
-                        embed=admin_embed,
-                        view=view,
-                    )
         else:
             self.logger.error(f"Failed to create request for {result.title} [tmdb:{result.tmdb_id}]")
             await ctx.send_followup(
