@@ -1,0 +1,21 @@
+services:
+  discord-plex:
+    build: .
+    container_name: discord-plex
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Webhook listener port (for Overseerr notifications)
+      - "3000:3000"
+    networks:
+      - default
+
+# Note: If running Plex/Overseerr in Docker, they should be on the same network
+# or use host networking to ensure connectivity.
+#
+# Example with external network:
+# networks:
+#   default:
+#     external: true
+#     name: homelab
