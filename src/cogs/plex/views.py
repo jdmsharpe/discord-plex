@@ -200,14 +200,12 @@ class ConfirmView(View):
 
     @button(label="Confirm", style=ButtonStyle.success, custom_id="confirm")
     async def confirm_btn(self, button: Button, interaction: Interaction) -> None:
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         await self.confirm_callback(interaction)
 
     @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel")
     async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         if self.cancel_callback:
             await self.cancel_callback(interaction)
 
@@ -229,14 +227,12 @@ class RequestActionView(View):
 
     @button(label="Approve", style=ButtonStyle.success, emoji="✅", custom_id="approve")
     async def approve_btn(self, button: Button, interaction: Interaction) -> None:
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         await self.approve_callback(interaction, self.request_id)
 
     @button(label="Deny", style=ButtonStyle.danger, emoji="❌", custom_id="deny")
     async def deny_btn(self, button: Button, interaction: Interaction) -> None:
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         await self.deny_callback(interaction, self.request_id)
 
 
@@ -314,13 +310,11 @@ class SeasonSelectView(View):
                 "Please select at least one season first!", ephemeral=True
             )
             return
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         await self.confirm_callback(interaction, self.selected_seasons)
 
     @button(label="Cancel", style=ButtonStyle.secondary, custom_id="cancel", row=1)
     async def cancel_btn(self, button: Button, interaction: Interaction) -> None:
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.defer()
         if self.cancel_callback:
             await self.cancel_callback(interaction)
