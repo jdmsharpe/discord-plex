@@ -39,6 +39,8 @@ class CachedMedia:
     added_at: Optional[datetime] = None
     episode_count: Optional[int] = None  # For shows
     season_count: Optional[int] = None  # For shows
+    tmdb_id: Optional[int] = None  # TMDB ID for poster lookup
+    imdb_id: Optional[str] = None  # IMDB ID (tt1234567 format)
 
     @property
     def display_title(self) -> str:

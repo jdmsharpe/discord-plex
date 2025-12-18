@@ -71,6 +71,9 @@ class PlexClientWrapper:
             if not media_type:
                 return None
 
+            # Extract external IDs (TMDB, IMDB) from guids
+            tmdb_id, imdb_id = self._extract_external_ids(item)
+
             cached = CachedMedia(
                 rating_key=str(item.ratingKey),
                 title=item.title,
@@ -82,6 +85,8 @@ class PlexClientWrapper:
                 rating=getattr(item, "rating", None),
                 duration=getattr(item, "duration", None),
                 added_at=getattr(item, "addedAt", None),
+                tmdb_id=tmdb_id,
+                imdb_id=imdb_id,
             )
 
             # Add show-specific info
@@ -96,6 +101,32 @@ class PlexClientWrapper:
                 f"Error converting media item {getattr(item, 'title', 'unknown')}: {e}"
             )
             return None
+
+    def _extract_external_ids(self, item) -> tuple[Optional[int], Optional[str]]:
+        """Extract TMDB and IMDB IDs from Plex item guids."""
+        tmdb_id = None
+        imdb_id = None
+
+        try:
+            guids = getattr(item, "guids", [])
+            for guid in guids:
+                guid_str = str(guid.id) if hasattr(guid, "id") else str(guid)
+
+                # Parse tmdb://12345 format
+                if guid_str.startswith("tmdb://"):
+                    try:
+                        tmdb_id = int(guid_str.replace("tmdb://", ""))
+                    except ValueError:
+                        pass
+
+                # Parse imdb://tt1234567 format
+                elif guid_str.startswith("imdb://"):
+                    imdb_id = guid_str.replace("imdb://", "")
+
+        except Exception as e:
+            logger.debug(f"Error extracting external IDs: {e}")
+
+        return tmdb_id, imdb_id
 
     @staticmethod
     def _get_media_type(plex_type: str) -> Optional[MediaType]:

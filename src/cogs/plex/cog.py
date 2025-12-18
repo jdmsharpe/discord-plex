@@ -204,7 +204,18 @@ class PlexCog(commands.Cog):
         followup: bool = False,
     ) -> None:
         """Display detailed media info."""
-        thumb_url = self.plex_client.get_thumb_url(media.thumb)
+        # Try to get TMDB poster (publicly accessible) instead of Plex thumbnail
+        thumb_url = None
+        if media.tmdb_id:
+            # Map Plex media type to TMDB media type
+            tmdb_type = "movie" if media.media_type == MediaType.MOVIE else "tv"
+            thumb_url = await self.overseerr_client.get_poster_url(tmdb_type, media.tmdb_id)
+            self.logger.debug(f"TMDB poster URL for {media.title}: {thumb_url}")
+
+        # Fall back to Plex thumbnail if no TMDB poster
+        if not thumb_url:
+            thumb_url = self.plex_client.get_thumb_url(media.thumb)
+            self.logger.debug(f"Using Plex thumb URL: {thumb_url}")
 
         # Generate Plex web URL
         server_id = self.plex_client.server.machineIdentifier
