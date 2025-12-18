@@ -150,10 +150,13 @@ class PlexClientWrapper:
         """Get all currently active streams."""
         streams = []
         try:
-            for session in self.server.sessions():
+            sessions = self.server.sessions()
+            logger.debug(f"Fetching active streams: found {len(sessions)} sessions")
+            for session in sessions:
                 stream = self._convert_to_active_stream(session)
                 if stream:
                     streams.append(stream)
+            logger.info(f"Active streams: {len(streams)} currently playing")
         except Exception as e:
             logger.error(f"Error fetching active streams: {e}")
         return streams
@@ -232,6 +235,7 @@ class PlexClientWrapper:
         self, library: Optional[str] = None, limit: int = 10
     ) -> list[CachedMedia]:
         """Get recently added media."""
+        logger.debug(f"Fetching recently added: library={library or 'all'}, limit={limit}")
         results = []
         try:
             if library:
@@ -254,6 +258,7 @@ class PlexClientWrapper:
                         results.append(cached)
         except Exception as e:
             logger.error(f"Error fetching recently added: {e}")
+        logger.debug(f"Recently added: returning {len(results)} items")
         return results
 
     def get_libraries(self) -> list[str]:
@@ -296,16 +301,24 @@ class PlexClientWrapper:
 
     def get_server_info(self) -> dict:
         """Get server information."""
+        logger.debug("Fetching server info...")
         try:
             transcode_sessions = self.server.transcodeSessions()
             sessions = self.server.sessions()
-            return {
+            transcode_count = len(list(transcode_sessions)) if transcode_sessions else 0
+            stream_count = len(list(sessions)) if sessions else 0
+            info = {
                 "name": self.server.friendlyName,
                 "version": self.server.version,
                 "platform": self.server.platform,
-                "transcodes": len(list(transcode_sessions)) if transcode_sessions else 0,
-                "streams": len(list(sessions)) if sessions else 0,
+                "transcodes": transcode_count,
+                "streams": stream_count,
             }
+            logger.info(
+                f"Server info: {info['name']} v{info['version']} "
+                f"({stream_count} streams, {transcode_count} transcodes)"
+            )
+            return info
         except Exception as e:
             logger.error(f"Error fetching server info: {e}")
             return {}

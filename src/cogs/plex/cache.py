@@ -77,6 +77,10 @@ class LibraryCache:
                     self.plex_client.get_all_media,
                 )
 
+                # Track changes for logging
+                old_count = len(self._cache)
+                old_keys = set(self._cache.keys())
+
                 # Clear and rebuild cache
                 self._cache.clear()
                 self._title_index.clear()
@@ -87,9 +91,21 @@ class LibraryCache:
 
                 self._last_refresh = datetime.now()
                 elapsed = (datetime.now() - start_time).total_seconds()
+
+                # Log cache changes
+                new_keys = set(self._cache.keys())
+                added = new_keys - old_keys
+                removed = old_keys - new_keys
+
                 logger.info(
-                    f"Cache refreshed: {len(self._cache)} items in {elapsed:.2f}s"
+                    f"Cache refreshed: {len(self._cache)} items in {elapsed:.2f}s "
+                    f"(+{len(added)} added, -{len(removed)} removed)"
                 )
+
+                if added:
+                    logger.debug(f"New items added: {len(added)}")
+                if removed:
+                    logger.debug(f"Items removed: {len(removed)}")
 
             except Exception as e:
                 logger.error(f"Failed to refresh cache: {e}")
@@ -138,9 +154,13 @@ class LibraryCache:
             List of matching CachedMedia sorted by relevance
         """
         if not self._cache:
+            logger.debug(f"Cache search '{query}': cache empty")
             return []
 
         normalized_query = self._normalize_title(query)
+        logger.debug(
+            f"Cache search: query='{query}', type={media_type}, library={library}"
+        )
 
         # Get all titles for fuzzy matching
         titles = list(self._title_index.keys())
@@ -183,7 +203,9 @@ class LibraryCache:
         # Sort by score descending
         results.sort(key=lambda x: x[0], reverse=True)
 
-        return [item for _, item in results[:limit]]
+        final_results = [item for _, item in results[:limit]]
+        logger.debug(f"Cache search '{query}': found {len(final_results)} results")
+        return final_results
 
     def get_recently_added(
         self,
