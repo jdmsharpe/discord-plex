@@ -14,7 +14,7 @@ class PaginationView(View):
         items: list[Any],
         per_page: int,
         embed_generator: Callable[[list[Any], int, int], discord.Embed],
-        timeout: float = 180,
+        timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
         self.items = items
@@ -180,7 +180,7 @@ class ConfirmView(View):
         cancel_callback: Optional[Callable[[Interaction], Any]] = None,
         confirm_label: str = "Confirm",
         cancel_label: str = "Cancel",
-        timeout: float = 60,
+        timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
         self.confirm_callback = confirm_callback
@@ -220,7 +220,7 @@ class RequestActionView(View):
         request_id: int,
         approve_callback: Callable[[Interaction, int], Any],
         deny_callback: Callable[[Interaction, int], Any],
-        timeout: float = 300,
+        timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
         self.request_id = request_id
@@ -247,7 +247,7 @@ class MediaInfoView(View):
         self,
         media: CachedMedia,
         plex_web_url: Optional[str] = None,
-        timeout: float = 180,
+        timeout: Optional[float] = None,
     ):
         super().__init__(timeout=timeout)
 
