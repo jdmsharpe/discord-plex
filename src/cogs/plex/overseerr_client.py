@@ -73,6 +73,7 @@ class OverseerrClient:
         results = []
         # URL-encode the query to handle special characters
         encoded_query = quote(query, safe="")
+        logger.debug(f"Overseerr search: query='{query}', encoded='{encoded_query}'")
         data = await self._request(
             "GET",
             "/search",
@@ -256,21 +257,38 @@ class OverseerrClient:
         if media_type == "tv" and seasons:
             payload["seasons"] = seasons
 
+        logger.info(f"Creating Overseerr request: type={media_type}, tmdb_id={tmdb_id}")
         data = await self._request("POST", endpoint, json=payload)
         if not data:
+            logger.error(f"Overseerr request creation failed: type={media_type}, tmdb_id={tmdb_id}")
             return None
 
-        return self._parse_request(data)
+        request = self._parse_request(data)
+        if request:
+            logger.info(f"Overseerr request created: id={request.request_id}, status={request.status.value}")
+        return request
 
     async def approve_request(self, request_id: int) -> bool:
         """Approve a pending request."""
+        logger.info(f"Approving Overseerr request: id={request_id}")
         data = await self._request("POST", f"/request/{request_id}/approve")
-        return data is not None
+        success = data is not None
+        if success:
+            logger.info(f"Overseerr request {request_id} approved successfully")
+        else:
+            logger.error(f"Failed to approve Overseerr request {request_id}")
+        return success
 
     async def decline_request(self, request_id: int) -> bool:
         """Decline a pending request."""
+        logger.info(f"Declining Overseerr request: id={request_id}")
         data = await self._request("POST", f"/request/{request_id}/decline")
-        return data is not None
+        success = data is not None
+        if success:
+            logger.info(f"Overseerr request {request_id} declined successfully")
+        else:
+            logger.error(f"Failed to decline Overseerr request {request_id}")
+        return success
 
     async def delete_request(self, request_id: int) -> bool:
         """Delete a request."""

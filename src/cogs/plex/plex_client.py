@@ -183,7 +183,9 @@ class PlexClientWrapper:
             if session.media and session.media[0]:
                 media = session.media[0]
                 if hasattr(media, "videoResolution"):
-                    quality = f"{media.videoResolution}p"
+                    resolution = str(media.videoResolution)
+                    # Avoid "1080pp" - only add "p" if not already present
+                    quality = resolution if resolution.endswith("p") else f"{resolution}p"
 
             # Calculate progress
             view_offset = getattr(session, "viewOffset", 0) or 0
@@ -295,7 +297,7 @@ class PlexClientWrapper:
     def get_server_info(self) -> dict:
         """Get server information."""
         try:
-            transcode_sessions = self.server.transcodeSessions
+            transcode_sessions = self.server.transcodeSessions()
             sessions = self.server.sessions()
             return {
                 "name": self.server.friendlyName,
