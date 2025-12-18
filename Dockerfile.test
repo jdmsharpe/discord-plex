@@ -1,0 +1,15 @@
+FROM python:3.13-slim
+
+WORKDIR /bot
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source and tests
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+ENV PYTHONPATH=/bot/src
+
+CMD ["python", "-m", "pytest", "tests/", "-v"]
