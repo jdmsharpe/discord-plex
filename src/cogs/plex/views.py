@@ -73,7 +73,7 @@ class MediaSelectView(View):
         media_items: list[CachedMedia],
         callback: Callable[[Interaction, CachedMedia], Any],
         placeholder: str = "Select media...",
-        timeout: float = 60,
+        timeout: Optional[float] = None,  # No timeout - let users take their time
     ):
         super().__init__(timeout=timeout)
         self.media_items = media_items[:25]  # Discord limit
@@ -122,7 +122,7 @@ class RequestSelectView(View):
         results: list[OverseerrSearchResult],
         callback: Callable[[Interaction, OverseerrSearchResult], Any],
         placeholder: str = "Select to request...",
-        timeout: float = 60,
+        timeout: Optional[float] = None,  # No timeout - let users take their time
     ):
         super().__init__(timeout=timeout)
         self.results = results[:25]
