@@ -206,19 +206,3 @@ class OverseerrSearchResult:
         return "🎬" if self.media_type == "movie" else "📺"
 
 
-@dataclass
-class UserMapping:
-    """Maps Discord user to Overseerr/Plex user."""
-
-    discord_id: int
-    overseerr_id: Optional[int] = None
-    plex_username: Optional[str] = None
-    notifications_enabled: bool = True
-
-
-@dataclass
-class ClientAlias:
-    """Friendly name for a Plex client."""
-
-    machine_identifier: str
-    friendly_name: str
