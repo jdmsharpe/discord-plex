@@ -49,12 +49,12 @@ Edit `embeds.py`. Functions like `create_media_embed()` return `discord.Embed`.
 ## Testing
 
 ```bash
-pytest tests/ -v  # 44 tests
+pytest tests/ -v  # 132 tests
 ```
 
-Tests cover models, embeds, cache, and Overseerr client. No live API tests - mock PlexAPI/aiohttp for new tests.
+Tests cover models, embeds, cache, Overseerr client, Plex client, and utilities. No live API tests - mock PlexAPI/aiohttp for new tests.
 
-CI runs on push/PR to `main` via GitHub Actions (`.github/workflows/ci.yml`).
+CI runs on push/PR to `main` via GitHub Actions (`.github/workflows/main.yml`). Pushes Docker image to Docker Hub on merge to main.
 
 ## Environment Variables
 

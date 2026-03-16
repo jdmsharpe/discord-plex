@@ -1,6 +1,6 @@
 # Discord Plex Bot
 
-[![CI](https://github.com/jdmsharpe/discord-plex/actions/workflows/ci.yml/badge.svg)](https://github.com/jdmsharpe/discord-plex/actions/workflows/ci.yml)
+[![Docker CI](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml/badge.svg)](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml)
 
 A Discord bot for Plex and Overseerr integration. Search your library, view active streams, and request new media.
 
@@ -60,7 +60,7 @@ source .venv/bin/activate  # Linux/Mac
 # Install deps
 pip install -r requirements.txt
 
-# Run tests (44 tests)
+# Run tests (132 tests)
 pytest tests/ -v
 ```
 
