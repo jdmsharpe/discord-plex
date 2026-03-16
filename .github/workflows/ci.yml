@@ -1,4 +1,4 @@
-name: CI
+name: Docker CI
 
 on:
   push:
@@ -7,41 +7,49 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
+
+      - name: Cache Docker layers
+        uses: actions/cache@v5
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push release image
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/discord-plex:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Build test image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: false
           load: true
           context: .
           file: ./Dockerfile.test
           tags: discord-plex-test:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run tests
         run: docker run discord-plex-test:latest
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image
-        uses: docker/build-push-action@v5
-        with:
-          push: false
-          context: .
-          file: ./Dockerfile
-          tags: discord-plex:latest

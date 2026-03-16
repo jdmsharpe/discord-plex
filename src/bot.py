@@ -4,7 +4,7 @@ import sys
 
 from discord import Bot, Intents
 
-from config.auth import BOT_TOKEN
+from config.auth import BOT_TOKEN, validate_config
 from cogs.plex import PlexCog
 
 
@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 async def main() -> None:
     """Main entry point."""
+    validate_config()
+
     # Configure intents
     intents = Intents.default()
     intents.presences = False
