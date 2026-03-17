@@ -1,5 +1,6 @@
 # Discord Plex Bot
 
+![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fjdmsharpe%2Fdiscord-plex%2F&label=discord-plex&icon=github&color=%23198754&message=&style=flat&tz=UTC)
 [![Docker CI](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml/badge.svg)](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml)
 
 A Discord bot for Plex and Overseerr integration. Search your library, view active streams, and request new media.
