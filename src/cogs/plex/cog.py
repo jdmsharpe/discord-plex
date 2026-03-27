@@ -1,48 +1,45 @@
 import asyncio
 import logging
-from typing import Optional, cast
+from typing import cast
 
 import discord
 from discord import ApplicationContext, Bot, Embed, Interaction, Member, option
-from discord.abc import Messageable
 from discord.ext import commands
 
 from config.auth import (
-    PLEX_URL,
-    PLEX_TOKEN,
-    OVERSEERR_URL,
-    OVERSEERR_API_KEY,
-    GUILD_IDS,
-    CACHE_REFRESH_MINUTES,
     ADMIN_USER_ID,
+    CACHE_REFRESH_MINUTES,
+    GUILD_IDS,
+    OVERSEERR_API_KEY,
+    OVERSEERR_URL,
+    PLEX_TOKEN,
+    PLEX_URL,
 )
+
 from .cache import LibraryCache
 from .embeds import (
+    OVERSEERR_COLOR,
+    PLEX_COLOR,
+    create_error_embed,
     create_media_embed,
+    create_recently_added_embed,
+    create_request_queue_embed,
+    create_search_result_embed,
+    create_server_stats_embed,
     create_stream_embed,
     create_streams_summary_embed,
-    create_recently_added_embed,
-    create_request_embed,
-    create_search_result_embed,
-    create_request_queue_embed,
-    create_server_stats_embed,
-    create_error_embed,
     create_success_embed,
-    PLEX_COLOR,
-    OVERSEERR_COLOR,
 )
 from .models import CachedMedia, MediaType, OverseerrSearchResult
 from .overseerr_client import OverseerrClient
 from .plex_client import PlexClientWrapper
 from .views import (
+    ConfirmView,
+    MediaInfoView,
     MediaSelectView,
     RequestSelectView,
-    ConfirmView,
-    RequestActionView,
-    MediaInfoView,
     SeasonSelectView,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -460,7 +457,7 @@ class PlexCog(commands.Cog):
         self,
         ctx: ApplicationContext,
         result: OverseerrSearchResult,
-        seasons: Optional[list[int]] = None,
+        seasons: list[int] | None = None,
     ) -> None:
         """Create a request in Overseerr."""
         seasons_info = f", seasons={seasons}" if seasons else ""

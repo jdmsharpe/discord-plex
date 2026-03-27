@@ -1,6 +1,6 @@
+import contextlib
 import logging
 from datetime import datetime
-from typing import Optional
 from urllib.parse import quote
 
 import aiohttp
@@ -11,7 +11,6 @@ from .models import (
     RequestStatus,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +20,7 @@ class OverseerrClient:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session."""
@@ -44,9 +43,9 @@ class OverseerrClient:
         self,
         method: str,
         endpoint: str,
-        json: Optional[dict] = None,
-        params: Optional[dict] = None,
-    ) -> Optional[dict]:
+        json: dict | None = None,
+        params: dict | None = None,
+    ) -> dict | None:
         """Make an API request."""
         session = await self._get_session()
         url = f"{self.base_url}/api/v1{endpoint}"
@@ -106,10 +105,8 @@ class OverseerrClient:
             )
             year = None
             if release_date:
-                try:
+                with contextlib.suppress(ValueError, IndexError):
                     year = int(release_date[:4])
-                except (ValueError, IndexError):
-                    pass
 
             results.append(
                 OverseerrSearchResult(
@@ -140,7 +137,7 @@ class OverseerrClient:
         }
         return status_map.get(status, RequestStatus.UNKNOWN)
 
-    async def get_request(self, request_id: int) -> Optional[OverseerrRequest]:
+    async def get_request(self, request_id: int) -> OverseerrRequest | None:
         """Get a specific request by ID."""
         data = await self._request("GET", f"/request/{request_id}")
         if not data:
@@ -149,8 +146,8 @@ class OverseerrClient:
 
     async def get_user_requests(
         self,
-        user_id: Optional[int] = None,
-        status: Optional[str] = None,
+        user_id: int | None = None,
+        status: str | None = None,
     ) -> list[OverseerrRequest]:
         """Get requests, optionally filtered by user or status."""
         params = {}
@@ -167,9 +164,8 @@ class OverseerrClient:
         requests = []
         for item in data["results"]:
             req = self._parse_request(item)
-            if req:
-                if user_id is None or (req.requested_by and str(user_id) in req.requested_by):
-                    requests.append(req)
+            if req and (user_id is None or (req.requested_by and str(user_id) in req.requested_by)):
+                requests.append(req)
 
         return requests
 
@@ -177,7 +173,7 @@ class OverseerrClient:
         """Get all pending requests (for admin view)."""
         return await self.get_user_requests(status="pending")
 
-    def _parse_request(self, data: dict) -> Optional[OverseerrRequest]:
+    def _parse_request(self, data: dict) -> OverseerrRequest | None:
         """Parse request data into OverseerrRequest."""
         try:
             media = data.get("media", {})
@@ -196,10 +192,8 @@ class OverseerrClient:
             if "title" in media:
                 title = media["title"]
             if "releaseDate" in media:
-                try:
+                with contextlib.suppress(ValueError, IndexError, TypeError):
                     year = int(media["releaseDate"][:4])
-                except (ValueError, IndexError, TypeError):
-                    pass
             if "posterPath" in media:
                 poster_path = media["posterPath"]
 
@@ -210,10 +204,8 @@ class OverseerrClient:
             created_at = data.get("createdAt")
             requested_at = datetime.now()
             if created_at:
-                try:
+                with contextlib.suppress(ValueError):
                     requested_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-                except ValueError:
-                    pass
 
             return OverseerrRequest(
                 request_id=data.get("id", 0),
@@ -237,8 +229,8 @@ class OverseerrClient:
         self,
         media_type: str,
         tmdb_id: int,
-        seasons: Optional[list[int]] = None,
-    ) -> Optional[OverseerrRequest]:
+        seasons: list[int] | None = None,
+    ) -> OverseerrRequest | None:
         """Create a new media request."""
         endpoint = "/request"
         payload = {
@@ -310,7 +302,7 @@ class OverseerrClient:
         self,
         media_type: str,
         tmdb_id: int,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Get detailed media info from Overseerr/TMDB."""
         endpoint = f"/{media_type}/{tmdb_id}"
         return await self._request("GET", endpoint)
@@ -334,7 +326,7 @@ class OverseerrClient:
         self,
         media_type: str,
         tmdb_id: int,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get TMDB poster URL for a media item."""
         details = await self.get_media_details(media_type, tmdb_id)
         if details and details.get("posterPath"):
@@ -348,7 +340,7 @@ class OverseerrClient:
             return []
         return data["results"]
 
-    async def get_user_by_plex_id(self, plex_id: int) -> Optional[dict]:
+    async def get_user_by_plex_id(self, plex_id: int) -> dict | None:
         """Find an Overseerr user by their Plex ID."""
         users = await self.get_users()
         for user in users:
@@ -356,6 +348,6 @@ class OverseerrClient:
                 return user
         return None
 
-    async def get_status(self) -> Optional[dict]:
+    async def get_status(self) -> dict | None:
         """Get Overseerr server status."""
         return await self._request("GET", "/status")

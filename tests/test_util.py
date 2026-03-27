@@ -1,9 +1,9 @@
-import unittest
 import sys
+import unittest
 
 sys.path.insert(0, "src")
 
-from util import chunk_text, truncate_text, format_duration, format_size
+from util import chunk_text, format_duration, format_size, truncate_text
 
 
 class TestChunkText(unittest.TestCase):

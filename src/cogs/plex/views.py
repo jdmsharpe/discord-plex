@@ -1,4 +1,6 @@
-from typing import Callable, Optional, Any
+from collections.abc import Callable
+from typing import Any
+
 import discord
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
@@ -14,7 +16,7 @@ class PaginationView(View):
         items: list[Any],
         per_page: int,
         embed_generator: Callable[[list[Any], int, int], discord.Embed],
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ):
         super().__init__(timeout=timeout)
         self.items = items
@@ -73,7 +75,7 @@ class MediaSelectView(View):
         media_items: list[CachedMedia],
         callback: Callable[[Interaction, CachedMedia], Any],
         placeholder: str = "Select media...",
-        timeout: Optional[float] = None,  # No timeout - let users take their time
+        timeout: float | None = None,  # No timeout - let users take their time
     ):
         super().__init__(timeout=timeout)
         self.media_items = media_items[:25]  # Discord limit
@@ -122,7 +124,7 @@ class RequestSelectView(View):
         results: list[OverseerrSearchResult],
         callback: Callable[[Interaction, OverseerrSearchResult], Any],
         placeholder: str = "Select to request...",
-        timeout: Optional[float] = None,  # No timeout - let users take their time
+        timeout: float | None = None,  # No timeout - let users take their time
     ):
         super().__init__(timeout=timeout)
         self.results = results[:25]
@@ -177,10 +179,10 @@ class ConfirmView(View):
     def __init__(
         self,
         confirm_callback: Callable[[Interaction], Any],
-        cancel_callback: Optional[Callable[[Interaction], Any]] = None,
+        cancel_callback: Callable[[Interaction], Any] | None = None,
         confirm_label: str = "Confirm",
         cancel_label: str = "Cancel",
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ):
         super().__init__(timeout=timeout)
         self.confirm_callback = confirm_callback
@@ -218,7 +220,7 @@ class RequestActionView(View):
         request_id: int,
         approve_callback: Callable[[Interaction, int], Any],
         deny_callback: Callable[[Interaction, int], Any],
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ):
         super().__init__(timeout=timeout)
         self.request_id = request_id
@@ -242,8 +244,8 @@ class MediaInfoView(View):
     def __init__(
         self,
         media: CachedMedia,
-        plex_web_url: Optional[str] = None,
-        timeout: Optional[float] = None,
+        plex_web_url: str | None = None,
+        timeout: float | None = None,
     ):
         super().__init__(timeout=timeout)
 
@@ -265,8 +267,8 @@ class SeasonSelectView(View):
         self,
         seasons: list[dict],  # List of {"seasonNumber": int, "episodeCount": int}
         confirm_callback: Callable[[Interaction, list[int]], Any],
-        cancel_callback: Optional[Callable[[Interaction], Any]] = None,
-        timeout: Optional[float] = None,
+        cancel_callback: Callable[[Interaction], Any] | None = None,
+        timeout: float | None = None,
     ):
         super().__init__(timeout=timeout)
         self.seasons = [s for s in seasons if s.get("seasonNumber", 0) > 0]  # Exclude specials

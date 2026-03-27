@@ -1,16 +1,14 @@
-import unittest
-from datetime import datetime
 import sys
+import unittest
 
 sys.path.insert(0, "src")
 
 # Import models directly to avoid loading discord
 from cogs.plex.models import (
+    ActiveStream,
     CachedMedia,
     MediaType,
-    ActiveStream,
     OverseerrSearchResult,
-    RequestStatus,
 )
 
 
