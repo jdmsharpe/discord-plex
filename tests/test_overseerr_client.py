@@ -24,9 +24,7 @@ class TestOverseerrClient(unittest.TestCase):
             client = OverseerrClient("http://test:5055", "test-api-key")
 
             # Mock get_media_details to return poster data
-            client.get_media_details = AsyncMock(
-                return_value={"posterPath": "/abc123.jpg"}
-            )
+            client.get_media_details = AsyncMock(return_value={"posterPath": "/abc123.jpg"})
 
             result = await client.get_poster_url("movie", 12345)
             self.assertEqual(result, "https://image.tmdb.org/t/p/w500/abc123.jpg")

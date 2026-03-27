@@ -188,9 +188,7 @@ class TestOverseerrSearchResult(unittest.TestCase):
             poster_path="/abc123.jpg",
             overview="Test overview",
         )
-        self.assertEqual(
-            result.poster_url, "https://image.tmdb.org/t/p/w500/abc123.jpg"
-        )
+        self.assertEqual(result.poster_url, "https://image.tmdb.org/t/p/w500/abc123.jpg")
 
     def test_poster_url_none(self):
         result = OverseerrSearchResult(

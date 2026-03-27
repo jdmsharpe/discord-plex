@@ -204,5 +204,3 @@ class OverseerrSearchResult:
     def type_emoji(self) -> str:
         """Return emoji for media type."""
         return "🎬" if self.media_type == "movie" else "📺"
-
-

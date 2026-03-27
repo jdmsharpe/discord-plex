@@ -63,12 +63,8 @@ class PlexCog(commands.Cog):
     """Discord cog for Plex and Overseerr integration."""
 
     # Command groups
-    plex = discord.SlashCommandGroup(
-        "plex", "Plex library commands", guild_ids=GUILD_IDS
-    )
-    request = discord.SlashCommandGroup(
-        "request", "Media request commands", guild_ids=GUILD_IDS
-    )
+    plex = discord.SlashCommandGroup("plex", "Plex library commands", guild_ids=GUILD_IDS)
+    request = discord.SlashCommandGroup("request", "Media request commands", guild_ids=GUILD_IDS)
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -124,9 +120,7 @@ class PlexCog(commands.Cog):
             try:
                 await self.cache.refresh()
             except Exception as e:
-                await ctx.send_followup(
-                    embed=create_error_embed(f"Failed to refresh cache: {e}")
-                )
+                await ctx.send_followup(embed=create_error_embed(f"Failed to refresh cache: {e}"))
                 return
 
         # Convert media type
@@ -140,9 +134,7 @@ class PlexCog(commands.Cog):
             type_filter = type_map.get(media_type)
 
         # Search cache with fuzzy matching (limit to 20 for tighter results)
-        results = self.cache.search(
-            query, limit=20, media_type=type_filter, library=library
-        )
+        results = self.cache.search(query, limit=20, media_type=type_filter, library=library)
 
         # Also search Plex directly for additional results
         if len(results) < 5:
@@ -159,9 +151,7 @@ class PlexCog(commands.Cog):
                     existing_keys.add(item.rating_key)
 
         if not results:
-            await ctx.send_followup(
-                embed=create_error_embed(f'No results found for "{query}"')
-            )
+            await ctx.send_followup(embed=create_error_embed(f'No results found for "{query}"'))
             return
 
         # Single result - show details directly
@@ -326,7 +316,9 @@ class PlexCog(commands.Cog):
         """Search Overseerr/TMDB for media to request."""
         await ctx.defer()
 
-        self.logger.info(f"Request search by {ctx.author}: query='{query}', type={media_type or 'any'}")
+        self.logger.info(
+            f"Request search by {ctx.author}: query='{query}', type={media_type or 'any'}"
+        )
         results = await self.overseerr_client.search(query)
 
         # Filter by type if specified
@@ -334,15 +326,11 @@ class PlexCog(commands.Cog):
             results = [r for r in results if r.media_type == media_type]
 
         if not results:
-            await ctx.send_followup(
-                embed=create_error_embed(f'No results found for "{query}"')
-            )
+            await ctx.send_followup(embed=create_error_embed(f'No results found for "{query}"'))
             return
 
         # Show results with select menu
-        async def on_select(
-            interaction: Interaction, result: OverseerrSearchResult
-        ) -> None:
+        async def on_select(interaction: Interaction, result: OverseerrSearchResult) -> None:
             await interaction.response.defer()
             await self._handle_request_selection(ctx, result)
 
@@ -365,9 +353,7 @@ class PlexCog(commands.Cog):
                 status = " ✅"
             elif result.already_requested:
                 status = " 📋"
-            lines.append(
-                f"**{i}.** {result.type_emoji} {result.title}{year_str}{status}"
-            )
+            lines.append(f"**{i}.** {result.type_emoji} {result.title}{year_str}{status}")
 
         embed.description = "\n".join(lines)
         embed.set_footer(text="✅ = Available | 📋 = Requested")
@@ -432,7 +418,10 @@ class PlexCog(commands.Cog):
         details = await self.overseerr_client.get_media_details("tv", result.tmdb_id)
         if not details or "seasons" not in details:
             # Fallback: request without seasons (will auto-request all)
-            self.logger.warning(f"Could not fetch seasons for {result.title}, falling back to auto-request")
+            self.logger.warning(
+                f"Could not fetch seasons for {result.title}, falling back to auto-request"
+            )
+
             async def on_confirm(interaction: Interaction) -> None:
                 await self._create_request(ctx, result)
 
@@ -498,11 +487,11 @@ class PlexCog(commands.Cog):
             await ctx.send_followup(embed=embed)
 
         else:
-            self.logger.error(f"Failed to create request for {result.title} [tmdb:{result.tmdb_id}]")
+            self.logger.error(
+                f"Failed to create request for {result.title} [tmdb:{result.tmdb_id}]"
+            )
             await ctx.send_followup(
-                embed=create_error_embed(
-                    "Failed to submit request. Please try again later."
-                )
+                embed=create_error_embed("Failed to submit request. Please try again later.")
             )
 
     @request.command(name="status", description="View your request status")
@@ -648,9 +637,7 @@ class PlexCog(commands.Cog):
         """Handle command errors."""
         if isinstance(error, commands.CheckFailure):
             await ctx.respond(
-                embed=create_error_embed(
-                    "You don't have permission to use this command."
-                ),
+                embed=create_error_embed("You don't have permission to use this command."),
                 ephemeral=True,
             )
         else:

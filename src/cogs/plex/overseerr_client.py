@@ -52,9 +52,7 @@ class OverseerrClient:
         url = f"{self.base_url}/api/v1{endpoint}"
 
         try:
-            async with session.request(
-                method, url, json=json, params=params
-            ) as response:
+            async with session.request(method, url, json=json, params=params) as response:
                 if response.status == 200 or response.status == 201:
                     return await response.json()
                 elif response.status == 404:
@@ -104,9 +102,7 @@ class OverseerrClient:
 
             title = item.get("title") if media_type == "movie" else item.get("name")
             release_date = (
-                item.get("releaseDate")
-                if media_type == "movie"
-                else item.get("firstAirDate")
+                item.get("releaseDate") if media_type == "movie" else item.get("firstAirDate")
             )
             year = None
             if release_date:
@@ -172,9 +168,7 @@ class OverseerrClient:
         for item in data["results"]:
             req = self._parse_request(item)
             if req:
-                if user_id is None or (
-                    req.requested_by and str(user_id) in req.requested_by
-                ):
+                if user_id is None or (req.requested_by and str(user_id) in req.requested_by):
                     requests.append(req)
 
         return requests
@@ -217,9 +211,7 @@ class OverseerrClient:
             requested_at = datetime.now()
             if created_at:
                 try:
-                    requested_at = datetime.fromisoformat(
-                        created_at.replace("Z", "+00:00")
-                    )
+                    requested_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 except ValueError:
                     pass
 
@@ -265,7 +257,9 @@ class OverseerrClient:
                     payload["seasons"] = available_seasons
                     logger.debug(f"Auto-requesting seasons: {available_seasons}")
 
-        logger.info(f"Creating Overseerr request: type={media_type}, tmdb_id={tmdb_id}, seasons={payload.get('seasons', 'N/A')}")
+        logger.info(
+            f"Creating Overseerr request: type={media_type}, tmdb_id={tmdb_id}, seasons={payload.get('seasons', 'N/A')}"
+        )
         data = await self._request("POST", endpoint, json=payload)
         if not data:
             logger.error(f"Overseerr request creation failed: type={media_type}, tmdb_id={tmdb_id}")
@@ -273,7 +267,9 @@ class OverseerrClient:
 
         request = self._parse_request(data)
         if request:
-            logger.info(f"Overseerr request created: id={request.request_id}, status={request.status.value}")
+            logger.info(
+                f"Overseerr request created: id={request.request_id}, status={request.status.value}"
+            )
         return request
 
     async def approve_request(self, request_id: int) -> bool:

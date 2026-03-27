@@ -112,9 +112,7 @@ def create_search_results_embed(
         lines.append(f"**{i}.** {media.type_emoji} {media.title}{year_str}")
 
     embed.description = "\n".join(lines)
-    embed.set_footer(
-        text=f"Page {page} of {total_pages} • Use /plex info <title> for details"
-    )
+    embed.set_footer(text=f"Page {page} of {total_pages} • Use /plex info <title> for details")
 
     return embed
 
@@ -290,11 +288,7 @@ def create_search_result_embed(result: OverseerrSearchResult) -> Embed:
     if result.already_available:
         status = "✅ Available in Plex"
     elif result.already_requested:
-        status_text = (
-            result.request_status.value.title()
-            if result.request_status
-            else "Requested"
-        )
+        status_text = result.request_status.value.title() if result.request_status else "Requested"
         status = f"📋 {status_text}"
     else:
         status = "➕ Available to Request"

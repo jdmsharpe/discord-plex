@@ -19,9 +19,7 @@ class LibraryCache:
         self.plex_client = plex_client
         self.refresh_minutes = refresh_minutes
         self._cache: dict[str, CachedMedia] = {}  # rating_key -> CachedMedia
-        self._title_index: dict[str, list[str]] = (
-            {}
-        )  # normalized_title -> [rating_keys]
+        self._title_index: dict[str, list[str]] = {}  # normalized_title -> [rating_keys]
         self._last_refresh: Optional[datetime] = None
         self._refresh_lock = asyncio.Lock()
         self._refresh_task: Optional[asyncio.Task] = None
@@ -31,9 +29,7 @@ class LibraryCache:
         """Check if cache needs refresh."""
         if self._last_refresh is None:
             return True
-        return datetime.now() - self._last_refresh > timedelta(
-            minutes=self.refresh_minutes
-        )
+        return datetime.now() - self._last_refresh > timedelta(minutes=self.refresh_minutes)
 
     @property
     def item_count(self) -> int:
@@ -158,9 +154,7 @@ class LibraryCache:
             return []
 
         normalized_query = self._normalize_title(query)
-        logger.debug(
-            f"Cache search: query='{query}', type={media_type}, library={library}"
-        )
+        logger.debug(f"Cache search: query='{query}', type={media_type}, library={library}")
 
         # Get all titles for fuzzy matching
         titles = list(self._title_index.keys())
@@ -266,8 +260,6 @@ class LibraryCache:
             "total_items": len(self._cache),
             "by_type": type_counts,
             "by_library": library_counts,
-            "last_refresh": (
-                self._last_refresh.isoformat() if self._last_refresh else None
-            ),
+            "last_refresh": (self._last_refresh.isoformat() if self._last_refresh else None),
             "is_stale": self.is_stale,
         }
