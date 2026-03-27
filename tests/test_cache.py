@@ -1,13 +1,12 @@
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
-
 import sys
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock
 
 sys.path.insert(0, "src")
 
-from cogs.plex.models import CachedMedia, MediaType
 from cogs.plex.cache import LibraryCache
+from cogs.plex.models import CachedMedia, MediaType
 
 
 class TestLibraryCache(unittest.TestCase):

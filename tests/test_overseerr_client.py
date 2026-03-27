@@ -1,7 +1,7 @@
-import unittest
-from unittest.mock import AsyncMock, patch, MagicMock
 import asyncio
 import sys
+import unittest
+from unittest.mock import AsyncMock, MagicMock
 
 sys.path.insert(0, "src")
 

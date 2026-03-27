@@ -1,13 +1,11 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Optional
 
 from rapidfuzz import fuzz, process
 
 from .models import CachedMedia, MediaType
 from .plex_client import PlexClientWrapper
-
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +18,9 @@ class LibraryCache:
         self.refresh_minutes = refresh_minutes
         self._cache: dict[str, CachedMedia] = {}  # rating_key -> CachedMedia
         self._title_index: dict[str, list[str]] = {}  # normalized_title -> [rating_keys]
-        self._last_refresh: Optional[datetime] = None
+        self._last_refresh: datetime | None = None
         self._refresh_lock = asyncio.Lock()
-        self._refresh_task: Optional[asyncio.Task] = None
+        self._refresh_task: asyncio.Task | None = None
 
     @property
     def is_stale(self) -> bool:
@@ -74,7 +72,6 @@ class LibraryCache:
                 )
 
                 # Track changes for logging
-                old_count = len(self._cache)
                 old_keys = set(self._cache.keys())
 
                 # Clear and rebuild cache
@@ -126,7 +123,7 @@ class LibraryCache:
         """Normalize title for indexing."""
         return title.lower().strip()
 
-    def get_by_key(self, rating_key: str) -> Optional[CachedMedia]:
+    def get_by_key(self, rating_key: str) -> CachedMedia | None:
         """Get item by rating key."""
         return self._cache.get(rating_key)
 
@@ -134,8 +131,8 @@ class LibraryCache:
         self,
         query: str,
         limit: int = 10,
-        media_type: Optional[MediaType] = None,
-        library: Optional[str] = None,
+        media_type: MediaType | None = None,
+        library: str | None = None,
     ) -> list[CachedMedia]:
         """
         Fuzzy search the cache.
@@ -204,7 +201,7 @@ class LibraryCache:
     def get_recently_added(
         self,
         limit: int = 10,
-        library: Optional[str] = None,
+        library: str | None = None,
     ) -> list[CachedMedia]:
         """Get recently added items from cache."""
         items = list(self._cache.values())
@@ -230,8 +227,8 @@ class LibraryCache:
 
     def get_all(
         self,
-        media_type: Optional[MediaType] = None,
-        library: Optional[str] = None,
+        media_type: MediaType | None = None,
+        library: str | None = None,
     ) -> list[CachedMedia]:
         """Get all items, optionally filtered."""
         items = list(self._cache.values())

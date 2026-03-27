@@ -4,9 +4,8 @@ import sys
 
 from discord import Bot, Intents
 
-from config.auth import BOT_TOKEN, validate_config
 from cogs.plex import PlexCog
-
+from config.auth import BOT_TOKEN, validate_config
 
 # Configure logging
 logging.basicConfig(

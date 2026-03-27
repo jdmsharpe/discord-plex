@@ -1,16 +1,15 @@
+import contextlib
 import logging
-from typing import Optional
 
-from plexapi.server import PlexServer
 from plexapi.exceptions import NotFound
+from plexapi.server import PlexServer
 
 from .models import (
+    ActiveStream,
     CachedMedia,
     MediaType,
-    ActiveStream,
     PlexClient,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class PlexClientWrapper:
     def __init__(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
         self.token = token
-        self._server: Optional[PlexServer] = None
+        self._server: PlexServer | None = None
 
     @property
     def server(self) -> PlexServer:
@@ -34,7 +33,7 @@ class PlexClientWrapper:
         """Force reconnection to server."""
         self._server = None
 
-    def get_thumb_url(self, thumb_path: Optional[str]) -> Optional[str]:
+    def get_thumb_url(self, thumb_path: str | None) -> str | None:
         """Convert Plex thumb path to full URL with token."""
         if not thumb_path:
             return None
@@ -62,7 +61,7 @@ class PlexClientWrapper:
         logger.info(f"Cached {len(media_items)} media items")
         return media_items
 
-    def _convert_to_cached_media(self, item, library_name: str) -> Optional[CachedMedia]:
+    def _convert_to_cached_media(self, item, library_name: str) -> CachedMedia | None:
         """Convert a Plex media item to CachedMedia."""
         try:
             media_type = self._get_media_type(item.type)
@@ -98,7 +97,7 @@ class PlexClientWrapper:
             logger.warning(f"Error converting media item {getattr(item, 'title', 'unknown')}: {e}")
             return None
 
-    def _extract_external_ids(self, item) -> tuple[Optional[int], Optional[str]]:
+    def _extract_external_ids(self, item) -> tuple[int | None, str | None]:
         """Extract TMDB and IMDB IDs from Plex item guids."""
         tmdb_id = None
         imdb_id = None
@@ -110,10 +109,8 @@ class PlexClientWrapper:
 
                 # Parse tmdb://12345 format
                 if guid_str.startswith("tmdb://"):
-                    try:
+                    with contextlib.suppress(ValueError):
                         tmdb_id = int(guid_str.replace("tmdb://", ""))
-                    except ValueError:
-                        pass
 
                 # Parse imdb://tt1234567 format
                 elif guid_str.startswith("imdb://"):
@@ -125,7 +122,7 @@ class PlexClientWrapper:
         return tmdb_id, imdb_id
 
     @staticmethod
-    def _get_media_type(plex_type: str) -> Optional[MediaType]:
+    def _get_media_type(plex_type: str) -> MediaType | None:
         """Convert Plex type string to MediaType enum."""
         type_map = {
             "movie": MediaType.MOVIE,
@@ -160,7 +157,7 @@ class PlexClientWrapper:
         except AttributeError:
             return "Unknown"
 
-    def get_item_by_key(self, rating_key: str) -> Optional[CachedMedia]:
+    def get_item_by_key(self, rating_key: str) -> CachedMedia | None:
         """Get a specific item by rating key."""
         try:
             item = self.server.fetchItem(int(rating_key))
@@ -188,7 +185,7 @@ class PlexClientWrapper:
             logger.error(f"Error fetching active streams: {e}")
         return streams
 
-    def _convert_to_active_stream(self, session) -> Optional[ActiveStream]:
+    def _convert_to_active_stream(self, session) -> ActiveStream | None:
         """Convert a Plex session to ActiveStream."""
         try:
             # Get player info
@@ -260,7 +257,7 @@ class PlexClientWrapper:
             return None
 
     def get_recently_added(
-        self, library: Optional[str] = None, limit: int = 10
+        self, library: str | None = None, limit: int = 10
     ) -> list[CachedMedia]:
         """Get recently added media."""
         logger.debug(f"Fetching recently added: library={library or 'all'}, limit={limit}")
@@ -316,10 +313,10 @@ class PlexClientWrapper:
             logger.error(f"Error fetching clients: {e}")
         return clients
 
-    def generate_watch_together_link(self, rating_key: str) -> Optional[str]:
+    def generate_watch_together_link(self, rating_key: str) -> str | None:
         """Generate a watch-together link for a media item."""
         try:
-            item = self.server.fetchItem(int(rating_key))
+            self.server.fetchItem(int(rating_key))
             # Watch together uses Plex's web app
             server_id = self.server.machineIdentifier
             return f"https://app.plex.tv/desktop#!/server/{server_id}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}&context=watch-together"

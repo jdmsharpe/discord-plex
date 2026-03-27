@@ -1,7 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 
 class MediaType(Enum):
@@ -29,18 +28,18 @@ class CachedMedia:
 
     rating_key: str
     title: str
-    year: Optional[int]
+    year: int | None
     media_type: MediaType
     library: str
-    thumb: Optional[str] = None
-    summary: Optional[str] = None
-    rating: Optional[float] = None
-    duration: Optional[int] = None  # milliseconds
-    added_at: Optional[datetime] = None
-    episode_count: Optional[int] = None  # For shows
-    season_count: Optional[int] = None  # For shows
-    tmdb_id: Optional[int] = None  # TMDB ID for poster lookup
-    imdb_id: Optional[str] = None  # IMDB ID (tt1234567 format)
+    thumb: str | None = None
+    summary: str | None = None
+    rating: float | None = None
+    duration: int | None = None  # milliseconds
+    added_at: datetime | None = None
+    episode_count: int | None = None  # For shows
+    season_count: int | None = None  # For shows
+    tmdb_id: int | None = None  # TMDB ID for poster lookup
+    imdb_id: str | None = None  # IMDB ID (tt1234567 format)
 
     @property
     def display_title(self) -> str:
@@ -64,7 +63,7 @@ class CachedMedia:
         return emoji_map.get(self.media_type, "📁")
 
     @property
-    def duration_formatted(self) -> Optional[str]:
+    def duration_formatted(self) -> str | None:
         """Return formatted duration string."""
         if not self.duration:
             return None
@@ -82,17 +81,17 @@ class ActiveStream:
 
     session_key: str
     media_title: str
-    media_year: Optional[int]
+    media_year: int | None
     media_type: MediaType
-    thumb: Optional[str]
+    thumb: str | None
     progress_percent: float
     progress_time: int  # milliseconds
     duration: int  # milliseconds
     state: str  # playing, paused, buffering
-    quality: Optional[str]
-    transcode_decision: Optional[str]  # direct play, transcode, copy
-    player_name: Optional[str]
-    player_device: Optional[str]
+    quality: str | None
+    transcode_decision: str | None  # direct play, transcode, copy
+    player_name: str | None
+    player_device: str | None
 
     @property
     def progress_bar(self) -> str:
@@ -136,10 +135,10 @@ class PlexClient:
 
     machine_identifier: str
     name: str
-    device: Optional[str] = None
-    platform: Optional[str] = None
-    product: Optional[str] = None
-    state: Optional[str] = None  # idle, playing
+    device: str | None = None
+    platform: str | None = None
+    product: str | None = None
+    state: str | None = None  # idle, playing
 
 
 @dataclass
@@ -150,15 +149,15 @@ class OverseerrRequest:
     media_type: str  # movie, tv
     tmdb_id: int
     title: str
-    year: Optional[int]
+    year: int | None
     status: RequestStatus
     requested_by: str  # Overseerr username
     requested_at: datetime
-    poster_path: Optional[str] = None
-    overview: Optional[str] = None
+    poster_path: str | None = None
+    overview: str | None = None
 
     @property
-    def poster_url(self) -> Optional[str]:
+    def poster_url(self) -> str | None:
         """Return full TMDB poster URL."""
         if self.poster_path:
             return f"https://image.tmdb.org/t/p/w500{self.poster_path}"
@@ -185,16 +184,16 @@ class OverseerrSearchResult:
     media_type: str  # movie, tv
     tmdb_id: int
     title: str
-    year: Optional[int]
-    poster_path: Optional[str]
-    overview: Optional[str]
-    vote_average: Optional[float] = None
+    year: int | None
+    poster_path: str | None
+    overview: str | None
+    vote_average: float | None = None
     already_available: bool = False
     already_requested: bool = False
-    request_status: Optional[RequestStatus] = None
+    request_status: RequestStatus | None = None
 
     @property
-    def poster_url(self) -> Optional[str]:
+    def poster_url(self) -> str | None:
         """Return full TMDB poster URL."""
         if self.poster_path:
             return f"https://image.tmdb.org/t/p/w500{self.poster_path}"

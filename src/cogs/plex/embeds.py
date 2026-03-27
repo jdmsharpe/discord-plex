@@ -1,16 +1,13 @@
 from datetime import datetime
-from typing import Optional
 
 from discord import Colour, Embed
 
 from .models import (
-    CachedMedia,
     ActiveStream,
+    CachedMedia,
     OverseerrRequest,
     OverseerrSearchResult,
-    RequestStatus,
 )
-
 
 # Plex orange color
 PLEX_COLOR = Colour.from_rgb(229, 160, 13)
@@ -28,7 +25,7 @@ def truncate(text: str, max_length: int = 4096) -> str:
 
 def create_media_embed(
     media: CachedMedia,
-    thumb_url: Optional[str] = None,
+    thumb_url: str | None = None,
 ) -> Embed:
     """Create a detailed embed for a media item."""
     embed = Embed(
@@ -117,7 +114,7 @@ def create_search_results_embed(
     return embed
 
 
-def create_stream_embed(stream: ActiveStream, thumb_url: Optional[str] = None) -> Embed:
+def create_stream_embed(stream: ActiveStream, thumb_url: str | None = None) -> Embed:
     """Create an embed for an active stream."""
     year_str = f" ({stream.media_year})" if stream.media_year else ""
 
@@ -194,7 +191,7 @@ def create_streams_summary_embed(streams: list[ActiveStream]) -> Embed:
 
 def create_recently_added_embed(
     media: list[CachedMedia],
-    library: Optional[str] = None,
+    library: str | None = None,
 ) -> Embed:
     """Create an embed for recently added media."""
     title = "📥 Recently Added"

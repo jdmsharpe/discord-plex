@@ -1,10 +1,10 @@
-import unittest
-from unittest.mock import MagicMock, patch, PropertyMock
 import sys
+import unittest
+from unittest.mock import MagicMock, PropertyMock
 
 sys.path.insert(0, "src")
 
-from cogs.plex.models import CachedMedia, MediaType, ActiveStream, PlexClient
+from cogs.plex.models import MediaType, PlexClient
 
 
 class TestPlexClientWrapperInit(unittest.TestCase):
@@ -174,7 +174,7 @@ class TestConvertToCachedMedia(unittest.TestCase):
         item.summary = overrides.get("summary", "A test movie")
         item.rating = overrides.get("rating", 8.5)
         item.duration = overrides.get("duration", 7200000)
-        item.addedAt = overrides.get("addedAt", None)
+        item.addedAt = overrides.get("addedAt")
         item.guids = overrides.get("guids", [])
         return item
 

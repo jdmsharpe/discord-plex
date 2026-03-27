@@ -1,9 +1,8 @@
 """Utility functions for the Discord Plex bot."""
 
-from typing import List
 
 
-def chunk_text(text: str, chunk_size: int = 4096) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 4096) -> list[str]:
     """
     Split text into chunks of specified size.
 

@@ -1,25 +1,23 @@
+import sys
 import unittest
 from datetime import datetime
 
-import sys
-
 sys.path.insert(0, "src")
 
+from cogs.plex.embeds import (
+    create_error_embed,
+    create_media_embed,
+    create_request_embed,
+    create_stream_embed,
+    create_success_embed,
+    truncate,
+)
 from cogs.plex.models import (
+    ActiveStream,
     CachedMedia,
     MediaType,
-    ActiveStream,
     OverseerrRequest,
     RequestStatus,
-)
-from cogs.plex.embeds import (
-    truncate,
-    create_media_embed,
-    create_search_results_embed,
-    create_stream_embed,
-    create_request_embed,
-    create_error_embed,
-    create_success_embed,
 )
 
 
