@@ -256,9 +256,7 @@ class PlexClientWrapper:
             logger.warning(f"Error converting session: {e}")
             return None
 
-    def get_recently_added(
-        self, library: str | None = None, limit: int = 10
-    ) -> list[CachedMedia]:
+    def get_recently_added(self, library: str | None = None, limit: int = 10) -> list[CachedMedia]:
         """Get recently added media."""
         logger.debug(f"Fetching recently added: library={library or 'all'}, limit={limit}")
         results = []
