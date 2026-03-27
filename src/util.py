@@ -1,7 +1,6 @@
 """Utility functions for the Discord Plex bot."""
 
 
-
 def chunk_text(text: str, chunk_size: int = 4096) -> list[str]:
     """
     Split text into chunks of specified size.
