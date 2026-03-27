@@ -6,9 +6,7 @@ load_dotenv()
 
 # Discord
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-GUILD_IDS = [
-    int(id.strip()) for id in os.getenv("GUILD_IDS", "").split(",") if id.strip()
-]
+GUILD_IDS = [int(id.strip()) for id in os.getenv("GUILD_IDS", "").split(",") if id.strip()]
 
 # Plex
 PLEX_URL = os.getenv("PLEX_URL", "http://localhost:32400")
@@ -20,9 +18,7 @@ OVERSEERR_API_KEY = os.getenv("OVERSEERR_API_KEY", "")
 
 # Optional Settings
 CACHE_REFRESH_MINUTES = int(os.getenv("CACHE_REFRESH_MINUTES", "30"))
-ADMIN_USER_ID = (
-    int(os.getenv("ADMIN_USER_ID", "0")) if os.getenv("ADMIN_USER_ID") else None
-)
+ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0")) if os.getenv("ADMIN_USER_ID") else None
 
 _REQUIRED_VARS = {
     "BOT_TOKEN": BOT_TOKEN,

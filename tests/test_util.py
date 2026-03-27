@@ -67,9 +67,7 @@ class TestTruncateText(unittest.TestCase):
         self.assertEqual(truncate_text("hello world", 8), "hello...")
 
     def test_truncates_with_custom_suffix(self):
-        self.assertEqual(
-            truncate_text("hello world", 9, suffix="~"), "hello wo~"
-        )
+        self.assertEqual(truncate_text("hello world", 9, suffix="~"), "hello wo~")
 
     def test_empty_suffix(self):
         self.assertEqual(truncate_text("hello world", 5, suffix=""), "hello")

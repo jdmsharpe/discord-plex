@@ -62,9 +62,7 @@ class PlexClientWrapper:
         logger.info(f"Cached {len(media_items)} media items")
         return media_items
 
-    def _convert_to_cached_media(
-        self, item, library_name: str
-    ) -> Optional[CachedMedia]:
+    def _convert_to_cached_media(self, item, library_name: str) -> Optional[CachedMedia]:
         """Convert a Plex media item to CachedMedia."""
         try:
             media_type = self._get_media_type(item.type)
@@ -97,9 +95,7 @@ class PlexClientWrapper:
             return cached
 
         except Exception as e:
-            logger.warning(
-                f"Error converting media item {getattr(item, 'title', 'unknown')}: {e}"
-            )
+            logger.warning(f"Error converting media item {getattr(item, 'title', 'unknown')}: {e}")
             return None
 
     def _extract_external_ids(self, item) -> tuple[Optional[int], Optional[str]]:
@@ -201,9 +197,7 @@ class PlexClientWrapper:
             player_device = player.device if player else None
 
             # Get transcode info
-            transcode_session = (
-                session.transcodeSessions[0] if session.transcodeSessions else None
-            )
+            transcode_session = session.transcodeSessions[0] if session.transcodeSessions else None
             transcode_decision = None
             quality = None
 
@@ -239,14 +233,17 @@ class PlexClientWrapper:
                 episode_num = getattr(session, "index", None)
                 if show_title:
                     if season_num and episode_num:
-                        media_title = f"{show_title} - S{season_num:02d}E{episode_num:02d} - {session.title}"
+                        media_title = (
+                            f"{show_title} - S{season_num:02d}E{episode_num:02d} - {session.title}"
+                        )
                     else:
                         media_title = f"{show_title} - {session.title}"
 
             return ActiveStream(
                 session_key=str(session.sessionKey),
                 media_title=media_title,
-                media_year=getattr(session, "grandparentYear", None) or getattr(session, "year", None),
+                media_year=getattr(session, "grandparentYear", None)
+                or getattr(session, "year", None),
                 media_type=self._get_media_type(session.type) or MediaType.MOVIE,
                 thumb=session.thumb if hasattr(session, "thumb") else None,
                 progress_percent=progress_percent,
