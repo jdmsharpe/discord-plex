@@ -1,8 +1,4 @@
-import sys
-import unittest
 from datetime import datetime
-
-sys.path.insert(0, "src")
 
 from cogs.plex.embeds import (
     create_error_embed,
@@ -21,25 +17,25 @@ from cogs.plex.models import (
 )
 
 
-class TestTruncate(unittest.TestCase):
+class TestTruncate:
     def test_short_text(self):
         text = "Hello"
         result = truncate(text, 100)
-        self.assertEqual(result, "Hello")
+        assert result == "Hello"
 
     def test_long_text(self):
         text = "A" * 500
         result = truncate(text, 100)
-        self.assertEqual(len(result), 100)
-        self.assertTrue(result.endswith("..."))
+        assert len(result) == 100
+        assert result.endswith("...")
 
     def test_exact_length(self):
         text = "A" * 100
         result = truncate(text, 100)
-        self.assertEqual(result, text)
+        assert result == text
 
 
-class TestCreateMediaEmbed(unittest.TestCase):
+class TestCreateMediaEmbed:
     def test_basic_embed(self):
         media = CachedMedia(
             rating_key="123",
@@ -49,12 +45,11 @@ class TestCreateMediaEmbed(unittest.TestCase):
             library="Movies",
             summary="A test movie summary.",
             rating=8.5,
-            duration=7200000,  # 2 hours
+            duration=7200000,
         )
         embed = create_media_embed(media, thumb_url=None)
-
-        self.assertIn("Test Movie (2024)", embed.title)
-        self.assertIn("A test movie summary", embed.description)
+        assert "Test Movie (2024)" in embed.title
+        assert "A test movie summary" in embed.description
 
     def test_embed_with_thumbnail(self):
         media = CachedMedia(
@@ -65,10 +60,10 @@ class TestCreateMediaEmbed(unittest.TestCase):
             library="Movies",
         )
         embed = create_media_embed(media, thumb_url="https://example.com/thumb.jpg")
-        self.assertIsNotNone(embed.thumbnail)
+        assert embed.thumbnail is not None
 
 
-class TestCreateStreamEmbed(unittest.TestCase):
+class TestCreateStreamEmbed:
     def test_stream_embed(self):
         stream = ActiveStream(
             session_key="1",
@@ -86,12 +81,11 @@ class TestCreateStreamEmbed(unittest.TestCase):
             player_device="Chromecast",
         )
         embed = create_stream_embed(stream)
+        assert "Now Playing" in embed.title
+        assert "Interstellar" in embed.description
 
-        self.assertIn("Now Playing", embed.title)
-        self.assertIn("Interstellar", embed.description)
 
-
-class TestCreateRequestEmbed(unittest.TestCase):
+class TestCreateRequestEmbed:
     def test_request_embed(self):
         request = OverseerrRequest(
             request_id=1,
@@ -106,24 +100,19 @@ class TestCreateRequestEmbed(unittest.TestCase):
             overview="A new movie to watch.",
         )
         embed = create_request_embed(request)
+        assert "New Movie" in embed.title
+        assert embed.thumbnail is not None
 
-        self.assertIn("New Movie", embed.title)
-        self.assertIsNotNone(embed.thumbnail)
 
-
-class TestCreateErrorEmbed(unittest.TestCase):
+class TestCreateErrorEmbed:
     def test_error_embed(self):
         embed = create_error_embed("Something went wrong")
-        self.assertIn("Error", embed.title)
-        self.assertEqual(embed.description, "Something went wrong")
+        assert "Error" in embed.title
+        assert embed.description == "Something went wrong"
 
 
-class TestCreateSuccessEmbed(unittest.TestCase):
+class TestCreateSuccessEmbed:
     def test_success_embed(self):
         embed = create_success_embed("Operation completed")
-        self.assertIn("Success", embed.title)
-        self.assertEqual(embed.description, "Operation completed")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert "Success" in embed.title
+        assert embed.description == "Operation completed"

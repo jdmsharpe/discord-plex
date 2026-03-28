@@ -48,11 +48,16 @@ Edit `embeds.py`. Functions like `create_media_embed()` return `discord.Embed`.
 
 ## Testing
 
+- `pytest` from project root — pytest-native with `asyncio_mode = "auto"` (no `@pytest.mark.asyncio` needed)
+- `pythonpath = ["src"]` configured in `pyproject.toml` — use direct imports (`from util import ...`)
+- Mocked PlexAPI/aiohttp clients, no real API calls
+
 ```bash
-pytest tests/ -v  # 132 tests
+.venv/Scripts/python.exe -m pytest -q    # Windows
+.venv/bin/python -m pytest -q            # Unix
 ```
 
-Tests cover models, embeds, cache, Overseerr client, Plex client, and utilities. No live API tests - mock PlexAPI/aiohttp for new tests.
+Tests cover models, embeds, cache, Overseerr client, Plex client, and utilities.
 
 CI runs on push/PR to `main` via GitHub Actions (`.github/workflows/main.yml`). Pushes Docker image to Docker Hub on merge to main.
 

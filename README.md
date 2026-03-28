@@ -52,17 +52,25 @@ A Discord bot for Plex and Overseerr integration. Search your library, view acti
 
 ## Development
 
+### Testing
+
+Tests use pytest with pytest-asyncio (`asyncio_mode = "auto"`). All tests are mocked — no real API calls.
+
 ```bash
-# Create venv
-python -m venv .venv
-.venv/Scripts/activate  # Windows
-source .venv/bin/activate  # Linux/Mac
+# Run tests
+.venv/Scripts/python.exe -m pytest -q    # Windows
+.venv/bin/python -m pytest -q            # Unix
 
-# Install deps
-pip install -r requirements.txt
+# Run tests in Docker
+docker build -f Dockerfile.test -t discord-plex-test . && docker run --rm discord-plex-test
+```
 
-# Run tests (132 tests)
-pytest tests/ -v
+### Linting & Type Checking
+
+```bash
+ruff check src/ tests/
+ruff format src/ tests/
+pyright src/
 ```
 
 ## CI
