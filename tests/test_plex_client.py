@@ -1,15 +1,11 @@
-import sys
-import unittest
 from unittest.mock import MagicMock, PropertyMock
 
-sys.path.insert(0, "src")
+import pytest
 
 from cogs.plex.models import MediaType, PlexClient
 
 
-class TestPlexClientWrapperInit(unittest.TestCase):
-    """Tests for PlexClientWrapper initialization."""
-
+class TestPlexClientWrapperInit:
     def _make_client(self, base_url="http://localhost:32400", token="test-token"):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -17,24 +13,24 @@ class TestPlexClientWrapperInit(unittest.TestCase):
 
     def test_strips_trailing_slash(self):
         client = self._make_client("http://localhost:32400/")
-        self.assertEqual(client.base_url, "http://localhost:32400")
+        assert client.base_url == "http://localhost:32400"
 
     def test_stores_token(self):
         client = self._make_client(token="my-token")
-        self.assertEqual(client.token, "my-token")
+        assert client.token == "my-token"
 
     def test_server_initially_none(self):
         client = self._make_client()
-        self.assertIsNone(client._server)
+        assert client._server is None
 
     def test_reconnect_clears_server(self):
         client = self._make_client()
         client._server = MagicMock()
         client.reconnect()
-        self.assertIsNone(client._server)
+        assert client._server is None
 
 
-class TestGetThumbUrl(unittest.TestCase):
+class TestGetThumbUrl:
     def _make_client(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -43,62 +39,58 @@ class TestGetThumbUrl(unittest.TestCase):
     def test_returns_full_url(self):
         client = self._make_client()
         result = client.get_thumb_url("/library/metadata/123/thumb/abc")
-        self.assertEqual(
-            result,
-            "http://plex:32400/library/metadata/123/thumb/abc?X-Plex-Token=tok123",
-        )
+        assert result == "http://plex:32400/library/metadata/123/thumb/abc?X-Plex-Token=tok123"
 
     def test_returns_none_for_none(self):
         client = self._make_client()
-        self.assertIsNone(client.get_thumb_url(None))
+        assert client.get_thumb_url(None) is None
 
     def test_returns_none_for_empty_string(self):
         client = self._make_client()
-        self.assertIsNone(client.get_thumb_url(""))
+        assert client.get_thumb_url("") is None
 
 
-class TestGetMediaType(unittest.TestCase):
+class TestGetMediaType:
     def _get_media_type(self, plex_type):
         from cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper._get_media_type(plex_type)
 
     def test_movie(self):
-        self.assertEqual(self._get_media_type("movie"), MediaType.MOVIE)
+        assert self._get_media_type("movie") == MediaType.MOVIE
 
     def test_show(self):
-        self.assertEqual(self._get_media_type("show"), MediaType.SHOW)
+        assert self._get_media_type("show") == MediaType.SHOW
 
     def test_episode(self):
-        self.assertEqual(self._get_media_type("episode"), MediaType.EPISODE)
+        assert self._get_media_type("episode") == MediaType.EPISODE
 
     def test_season(self):
-        self.assertEqual(self._get_media_type("season"), MediaType.SEASON)
+        assert self._get_media_type("season") == MediaType.SEASON
 
     def test_artist(self):
-        self.assertEqual(self._get_media_type("artist"), MediaType.ARTIST)
+        assert self._get_media_type("artist") == MediaType.ARTIST
 
     def test_album(self):
-        self.assertEqual(self._get_media_type("album"), MediaType.ALBUM)
+        assert self._get_media_type("album") == MediaType.ALBUM
 
     def test_track(self):
-        self.assertEqual(self._get_media_type("track"), MediaType.TRACK)
+        assert self._get_media_type("track") == MediaType.TRACK
 
     def test_unknown_returns_none(self):
-        self.assertIsNone(self._get_media_type("photo"))
+        assert self._get_media_type("photo") is None
 
     def test_empty_returns_none(self):
-        self.assertIsNone(self._get_media_type(""))
+        assert self._get_media_type("") is None
 
 
-class TestExtractExternalIds(unittest.TestCase):
+class TestExtractExternalIds:
     def _make_client(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper("http://plex:32400", "tok")
 
     def _make_item_with_guids(self, guid_ids):
-        """Create a mock item with a list of guid IDs."""
         item = MagicMock()
         guids = []
         for gid in guid_ids:
@@ -112,53 +104,53 @@ class TestExtractExternalIds(unittest.TestCase):
         client = self._make_client()
         item = self._make_item_with_guids(["tmdb://12345"])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertEqual(tmdb_id, 12345)
-        self.assertIsNone(imdb_id)
+        assert tmdb_id == 12345
+        assert imdb_id is None
 
     def test_extracts_imdb_id(self):
         client = self._make_client()
         item = self._make_item_with_guids(["imdb://tt1234567"])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertIsNone(tmdb_id)
-        self.assertEqual(imdb_id, "tt1234567")
+        assert tmdb_id is None
+        assert imdb_id == "tt1234567"
 
     def test_extracts_both_ids(self):
         client = self._make_client()
         item = self._make_item_with_guids(["tmdb://999", "imdb://tt0000001"])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertEqual(tmdb_id, 999)
-        self.assertEqual(imdb_id, "tt0000001")
+        assert tmdb_id == 999
+        assert imdb_id == "tt0000001"
 
     def test_no_guids_returns_none(self):
         client = self._make_client()
         item = MagicMock()
         item.guids = []
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertIsNone(tmdb_id)
-        self.assertIsNone(imdb_id)
+        assert tmdb_id is None
+        assert imdb_id is None
 
     def test_missing_guids_attr_returns_none(self):
         client = self._make_client()
-        item = MagicMock(spec=[])  # No attributes
+        item = MagicMock(spec=[])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertIsNone(tmdb_id)
-        self.assertIsNone(imdb_id)
+        assert tmdb_id is None
+        assert imdb_id is None
 
     def test_invalid_tmdb_id_skipped(self):
         client = self._make_client()
         item = self._make_item_with_guids(["tmdb://not-a-number"])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertIsNone(tmdb_id)
+        assert tmdb_id is None
 
     def test_ignores_unknown_guid_prefix(self):
         client = self._make_client()
         item = self._make_item_with_guids(["tvdb://12345"])
         tmdb_id, imdb_id = client._extract_external_ids(item)
-        self.assertIsNone(tmdb_id)
-        self.assertIsNone(imdb_id)
+        assert tmdb_id is None
+        assert imdb_id is None
 
 
-class TestConvertToCachedMedia(unittest.TestCase):
+class TestConvertToCachedMedia:
     def _make_client(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -182,11 +174,11 @@ class TestConvertToCachedMedia(unittest.TestCase):
         client = self._make_client()
         item = self._make_plex_item(type="movie", title="Inception", year=2010)
         result = client._convert_to_cached_media(item, "Movies")
-        self.assertIsNotNone(result)
-        self.assertEqual(result.title, "Inception")
-        self.assertEqual(result.year, 2010)
-        self.assertEqual(result.media_type, MediaType.MOVIE)
-        self.assertEqual(result.library, "Movies")
+        assert result is not None
+        assert result.title == "Inception"
+        assert result.year == 2010
+        assert result.media_type == MediaType.MOVIE
+        assert result.library == "Movies"
 
     def test_converts_show_with_counts(self):
         client = self._make_client()
@@ -194,23 +186,23 @@ class TestConvertToCachedMedia(unittest.TestCase):
         item.leafCount = 62
         item.childCount = 5
         result = client._convert_to_cached_media(item, "TV Shows")
-        self.assertIsNotNone(result)
-        self.assertEqual(result.media_type, MediaType.SHOW)
-        self.assertEqual(result.episode_count, 62)
-        self.assertEqual(result.season_count, 5)
+        assert result is not None
+        assert result.media_type == MediaType.SHOW
+        assert result.episode_count == 62
+        assert result.season_count == 5
 
     def test_movie_has_no_episode_count(self):
         client = self._make_client()
         item = self._make_plex_item(type="movie")
         result = client._convert_to_cached_media(item, "Movies")
-        self.assertIsNone(result.episode_count)
-        self.assertIsNone(result.season_count)
+        assert result.episode_count is None
+        assert result.season_count is None
 
     def test_unknown_type_returns_none(self):
         client = self._make_client()
         item = self._make_plex_item(type="photo")
         result = client._convert_to_cached_media(item, "Photos")
-        self.assertIsNone(result)
+        assert result is None
 
     def test_extracts_external_ids(self):
         client = self._make_client()
@@ -218,19 +210,18 @@ class TestConvertToCachedMedia(unittest.TestCase):
         guid.id = "tmdb://550"
         item = self._make_plex_item(guids=[guid])
         result = client._convert_to_cached_media(item, "Movies")
-        self.assertEqual(result.tmdb_id, 550)
+        assert result.tmdb_id == 550
 
     def test_exception_returns_none(self):
         client = self._make_client()
         item = MagicMock()
         item.type = "movie"
-        # Force an error by making ratingKey raise
         type(item).ratingKey = PropertyMock(side_effect=RuntimeError("boom"))
         result = client._convert_to_cached_media(item, "Movies")
-        self.assertIsNone(result)
+        assert result is None
 
 
-class TestGetAllMedia(unittest.TestCase):
+class TestGetAllMedia:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -240,7 +231,6 @@ class TestGetAllMedia(unittest.TestCase):
 
     def test_fetches_from_all_sections(self):
         client = self._make_client_with_server()
-
         movie_item = MagicMock()
         movie_item.type = "movie"
         movie_item.ratingKey = 1
@@ -260,28 +250,27 @@ class TestGetAllMedia(unittest.TestCase):
 
         client._server.library.sections.return_value = [section]
         result = client.get_all_media()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].title, "Movie")
+        assert len(result) == 1
+        assert result[0].title == "Movie"
 
     def test_skips_unsupported_sections(self):
         client = self._make_client_with_server()
-
         photo_section = MagicMock()
         photo_section.type = "photo"
         photo_section.title = "Photos"
 
         client._server.library.sections.return_value = [photo_section]
         result = client.get_all_media()
-        self.assertEqual(len(result), 0)
+        assert len(result) == 0
 
     def test_error_raises(self):
         client = self._make_client_with_server()
         client._server.library.sections.side_effect = RuntimeError("connection failed")
-        with self.assertRaises(RuntimeError):
+        with pytest.raises(RuntimeError):
             client.get_all_media()
 
 
-class TestSearch(unittest.TestCase):
+class TestSearch:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -291,7 +280,6 @@ class TestSearch(unittest.TestCase):
 
     def test_returns_matching_results(self):
         client = self._make_client_with_server()
-
         item = MagicMock()
         item.type = "movie"
         item.ratingKey = 1
@@ -307,27 +295,26 @@ class TestSearch(unittest.TestCase):
 
         client._server.search.return_value = [item]
         result = client.search("inception")
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].title, "Inception")
+        assert len(result) == 1
+        assert result[0].title == "Inception"
 
     def test_filters_non_matching_types(self):
         client = self._make_client_with_server()
-
         episode_item = MagicMock()
-        episode_item.type = "episode"  # Not in the filter list
+        episode_item.type = "episode"
 
         client._server.search.return_value = [episode_item]
         result = client.search("test")
-        self.assertEqual(len(result), 0)
+        assert len(result) == 0
 
     def test_error_returns_empty(self):
         client = self._make_client_with_server()
         client._server.search.side_effect = RuntimeError("fail")
         result = client.search("test")
-        self.assertEqual(result, [])
+        assert result == []
 
 
-class TestGetItemByKey(unittest.TestCase):
+class TestGetItemByKey:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -337,7 +324,6 @@ class TestGetItemByKey(unittest.TestCase):
 
     def test_returns_item(self):
         client = self._make_client_with_server()
-
         item = MagicMock()
         item.type = "movie"
         item.ratingKey = 42
@@ -353,8 +339,8 @@ class TestGetItemByKey(unittest.TestCase):
 
         client._server.fetchItem.return_value = item
         result = client.get_item_by_key("42")
-        self.assertIsNotNone(result)
-        self.assertEqual(result.title, "Found Movie")
+        assert result is not None
+        assert result.title == "Found Movie"
         client._server.fetchItem.assert_called_once_with(42)
 
     def test_not_found_returns_none(self):
@@ -363,16 +349,16 @@ class TestGetItemByKey(unittest.TestCase):
         client = self._make_client_with_server()
         client._server.fetchItem.side_effect = NotFound("not found")
         result = client.get_item_by_key("999")
-        self.assertIsNone(result)
+        assert result is None
 
     def test_error_returns_none(self):
         client = self._make_client_with_server()
         client._server.fetchItem.side_effect = RuntimeError("fail")
         result = client.get_item_by_key("1")
-        self.assertIsNone(result)
+        assert result is None
 
 
-class TestGetActiveStreams(unittest.TestCase):
+class TestGetActiveStreams:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -400,7 +386,6 @@ class TestGetActiveStreams(unittest.TestCase):
         media = MagicMock()
         media.videoResolution = overrides.get("videoResolution", "1080")
         session.media = [media]
-
         return session
 
     def test_returns_active_streams(self):
@@ -409,9 +394,9 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].media_title, "Inception")
-        self.assertEqual(result[0].state, "playing")
+        assert len(result) == 1
+        assert result[0].media_title == "Inception"
+        assert result[0].state == "playing"
 
     def test_episode_title_formatting(self):
         client = self._make_client_with_server()
@@ -422,7 +407,7 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(result[0].media_title, "Breaking Bad - S01E01 - Pilot")
+        assert result[0].media_title == "Breaking Bad - S01E01 - Pilot"
 
     def test_episode_without_season_episode_numbers(self):
         client = self._make_client_with_server()
@@ -433,7 +418,7 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(result[0].media_title, "Some Show - Pilot")
+        assert result[0].media_title == "Some Show - Pilot"
 
     def test_transcode_session(self):
         client = self._make_client_with_server()
@@ -443,7 +428,7 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(result[0].transcode_decision, "Transcode")
+        assert result[0].transcode_decision == "Transcode"
 
     def test_direct_play(self):
         client = self._make_client_with_server()
@@ -451,7 +436,7 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(result[0].transcode_decision, "Direct Play")
+        assert result[0].transcode_decision == "Direct Play"
 
     def test_progress_calculation(self):
         client = self._make_client_with_server()
@@ -459,7 +444,7 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertAlmostEqual(result[0].progress_percent, 50.0)
+        assert result[0].progress_percent == pytest.approx(50.0)
 
     def test_resolution_formatting_no_duplicate_p(self):
         client = self._make_client_with_server()
@@ -467,22 +452,22 @@ class TestGetActiveStreams(unittest.TestCase):
         client._server.sessions.return_value = [session]
 
         result = client.get_active_streams()
-        self.assertEqual(result[0].quality, "1080p")  # Not "1080pp"
+        assert result[0].quality == "1080p"
 
     def test_empty_sessions(self):
         client = self._make_client_with_server()
         client._server.sessions.return_value = []
         result = client.get_active_streams()
-        self.assertEqual(result, [])
+        assert result == []
 
     def test_error_returns_empty(self):
         client = self._make_client_with_server()
         client._server.sessions.side_effect = RuntimeError("fail")
         result = client.get_active_streams()
-        self.assertEqual(result, [])
+        assert result == []
 
 
-class TestGetRecentlyAdded(unittest.TestCase):
+class TestGetRecentlyAdded:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -513,8 +498,8 @@ class TestGetRecentlyAdded(unittest.TestCase):
         client._server.library.sections.return_value = [section]
 
         result = client.get_recently_added(library="Movies", limit=5)
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].title, "New Movie")
+        assert len(result) == 1
+        assert result[0].title == "New Movie"
         section.recentlyAdded.assert_called_once_with(maxresults=5)
 
     def test_all_libraries(self):
@@ -523,7 +508,7 @@ class TestGetRecentlyAdded(unittest.TestCase):
         client._server.library.recentlyAdded.return_value = items
 
         result = client.get_recently_added(limit=3)
-        self.assertEqual(len(result), 3)
+        assert len(result) == 3
 
     def test_library_name_case_insensitive(self):
         client = self._make_client_with_server()
@@ -533,16 +518,16 @@ class TestGetRecentlyAdded(unittest.TestCase):
         client._server.library.sections.return_value = [section]
 
         result = client.get_recently_added(library="movies")
-        self.assertEqual(len(result), 1)
+        assert len(result) == 1
 
     def test_error_returns_empty(self):
         client = self._make_client_with_server()
         client._server.library.sections.side_effect = RuntimeError("fail")
         result = client.get_recently_added(library="Movies")
-        self.assertEqual(result, [])
+        assert result == []
 
 
-class TestGetLibraries(unittest.TestCase):
+class TestGetLibraries:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -558,16 +543,16 @@ class TestGetLibraries(unittest.TestCase):
         client._server.library.sections.return_value = [s1, s2]
 
         result = client.get_libraries()
-        self.assertEqual(result, ["Movies", "TV Shows"])
+        assert result == ["Movies", "TV Shows"]
 
     def test_error_returns_empty(self):
         client = self._make_client_with_server()
         client._server.library.sections.side_effect = RuntimeError("fail")
         result = client.get_libraries()
-        self.assertEqual(result, [])
+        assert result == []
 
 
-class TestGetAvailableClients(unittest.TestCase):
+class TestGetAvailableClients:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -587,19 +572,19 @@ class TestGetAvailableClients(unittest.TestCase):
         client._server.clients.return_value = [plex_client_mock]
 
         result = client.get_available_clients()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].name, "Living Room TV")
-        self.assertEqual(result[0].machine_identifier, "abc123")
-        self.assertIsInstance(result[0], PlexClient)
+        assert len(result) == 1
+        assert result[0].name == "Living Room TV"
+        assert result[0].machine_identifier == "abc123"
+        assert isinstance(result[0], PlexClient)
 
     def test_error_returns_empty(self):
         client = self._make_client_with_server()
         client._server.clients.side_effect = RuntimeError("fail")
         result = client.get_available_clients()
-        self.assertEqual(result, [])
+        assert result == []
 
 
-class TestGenerateWatchTogetherLink(unittest.TestCase):
+class TestGenerateWatchTogetherLink:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -613,18 +598,18 @@ class TestGenerateWatchTogetherLink(unittest.TestCase):
         client._server.machineIdentifier = "server123"
 
         result = client.generate_watch_together_link("42")
-        self.assertIn("server123", result)
-        self.assertIn("42", result)
-        self.assertIn("app.plex.tv", result)
+        assert "server123" in result
+        assert "42" in result
+        assert "app.plex.tv" in result
 
     def test_error_returns_none(self):
         client = self._make_client_with_server()
         client._server.fetchItem.side_effect = RuntimeError("fail")
         result = client.generate_watch_together_link("42")
-        self.assertIsNone(result)
+        assert result is None
 
 
-class TestGetServerInfo(unittest.TestCase):
+class TestGetServerInfo:
     def _make_client_with_server(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -641,20 +626,20 @@ class TestGetServerInfo(unittest.TestCase):
         client._server.sessions.return_value = [MagicMock(), MagicMock()]
 
         result = client.get_server_info()
-        self.assertEqual(result["name"], "My Plex")
-        self.assertEqual(result["version"], "1.32.0")
-        self.assertEqual(result["platform"], "Linux")
-        self.assertEqual(result["transcodes"], 1)
-        self.assertEqual(result["streams"], 2)
+        assert result["name"] == "My Plex"
+        assert result["version"] == "1.32.0"
+        assert result["platform"] == "Linux"
+        assert result["transcodes"] == 1
+        assert result["streams"] == 2
 
     def test_error_returns_empty_dict(self):
         client = self._make_client_with_server()
         client._server.transcodeSessions.side_effect = RuntimeError("fail")
         result = client.get_server_info()
-        self.assertEqual(result, {})
+        assert result == {}
 
 
-class TestGetLibraryForItem(unittest.TestCase):
+class TestGetLibraryForItem:
     def _make_client(self):
         from cogs.plex.plex_client import PlexClientWrapper
 
@@ -664,13 +649,9 @@ class TestGetLibraryForItem(unittest.TestCase):
         client = self._make_client()
         item = MagicMock()
         item.librarySectionTitle = "Movies"
-        self.assertEqual(client._get_library_for_item(item), "Movies")
+        assert client._get_library_for_item(item) == "Movies"
 
     def test_returns_unknown_when_missing(self):
         client = self._make_client()
-        item = MagicMock(spec=[])  # No attributes
-        self.assertEqual(client._get_library_for_item(item), "Unknown")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        item = MagicMock(spec=[])
+        assert client._get_library_for_item(item) == "Unknown"
