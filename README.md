@@ -5,6 +5,8 @@
 
 A Discord bot for Plex and Overseerr integration. Search your library, view active streams, and request new media.
 
+Supports Python 3.10+ locally and in CI.
+
 ## Features
 
 - `/plex search <query>` - Search your Plex library with fuzzy matching (displays TMDB posters)
@@ -54,15 +56,17 @@ A Discord bot for Plex and Overseerr integration. Search your library, view acti
 
 ### Testing
 
-Tests use pytest with pytest-asyncio (`asyncio_mode = "auto"`). All tests are mocked — no real API calls.
+Tests use pytest with pytest-asyncio (`asyncio_mode = "auto"`). All tests are mocked — no real API calls. GitHub Actions runs the suite on Python 3.10, 3.11, 3.12, and 3.13.
 
 ```bash
 # Run tests
-.venv/Scripts/python.exe -m pytest -q    # Windows
-.venv/bin/python -m pytest -q            # Unix
+python -m pytest -q
 
 # Run tests in Docker
-docker build -f Dockerfile.test -t discord-plex-test . && docker run --rm discord-plex-test
+docker build --build-arg PYTHON_VERSION=3.13 -f Dockerfile.test -t discord-plex-test . && docker run --rm discord-plex-test
+
+# Smoke-test another supported version
+docker build --build-arg PYTHON_VERSION=3.10 -f Dockerfile.test -t discord-plex-test:3.10 . && docker run --rm discord-plex-test:3.10
 ```
 
 ### Linting & Type Checking
@@ -75,4 +79,4 @@ pyright src/
 
 ## CI
 
-Tests run automatically on push/PR to `main` via GitHub Actions. The workflow runs pytest in a Docker container.
+Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.10-3.13, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
