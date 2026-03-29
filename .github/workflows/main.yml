@@ -1,4 +1,4 @@
-name: Docker CI
+name: CI
 
 on:
   push:
@@ -7,7 +7,34 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  test:
+    name: Pytest (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+  docker-smoke-test:
+    name: Docker smoke test
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -15,30 +42,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Cache Docker layers
-        uses: actions/cache@v5
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      - name: Build and push release image
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          context: .
-          file: ./Dockerfile
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/discord-plex:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Build test image
         uses: docker/build-push-action@v7
@@ -48,8 +51,40 @@ jobs:
           context: .
           file: ./Dockerfile.test
           tags: discord-plex-test:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          build-args: |
+            PYTHON_VERSION=3.13
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Run tests
-        run: docker run discord-plex-test:latest
+      - name: Run Docker container to execute tests
+        run: docker run --rm discord-plex-test:latest
+
+  release-image:
+    name: Build and push release image
+    if: github.event_name == 'push'
+    needs: [test, docker-smoke-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push release image
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/discord-plex:latest
+          build-args: |
+            PYTHON_VERSION=3.13
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

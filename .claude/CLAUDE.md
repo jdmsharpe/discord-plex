@@ -48,18 +48,20 @@ Edit `embeds.py`. Functions like `create_media_embed()` return `discord.Embed`.
 
 ## Testing
 
+- Supported/tested Python versions: 3.10, 3.11, 3.12, 3.13
+- `Dockerfile` and `Dockerfile.test` accept `PYTHON_VERSION` build args (default `3.13`)
 - `pytest` from project root — pytest-native with `asyncio_mode = "auto"` (no `@pytest.mark.asyncio` needed)
 - `pythonpath = ["src"]` configured in `pyproject.toml` — use direct imports (`from util import ...`)
 - Mocked PlexAPI/aiohttp clients, no real API calls
 
 ```bash
-.venv/Scripts/python.exe -m pytest -q    # Windows
-.venv/bin/python -m pytest -q            # Unix
+python -m pytest -q
+docker build --build-arg PYTHON_VERSION=3.13 -f Dockerfile.test -t discord-plex-test . && docker run --rm discord-plex-test
 ```
 
 Tests cover models, embeds, cache, Overseerr client, Plex client, and utilities.
 
-CI runs on push/PR to `main` via GitHub Actions (`.github/workflows/main.yml`). Pushes Docker image to Docker Hub on merge to main.
+CI runs on push/PR to `main` via GitHub Actions. The workflow runs `pytest` on Python 3.10-3.13, performs a Docker smoke test, and pushes the Docker image only on direct pushes after both checks pass.
 
 ## Environment Variables
 
