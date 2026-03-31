@@ -16,8 +16,6 @@
 ```text
 src/
 ├── bot.py                           # Thin repo-local launcher
-├── util.py                          # Repo-local helper
-├── config/                          # Repo-local helper
 └── discord_plex/
     ├── __init__.py
     ├── bot.py
@@ -40,7 +38,7 @@ src/
             └── views.py
 ```
 
-Top-level `util.py` and `config/` remain repo-local implementation details and are not part of the installed public API.
+Only `src/bot.py` remains at the repo root; code imports should target `discord_plex...`.
 
 ## Testing And Patch Targets
 
