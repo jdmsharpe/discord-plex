@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 
-from cogs.plex.models import MediaType, PlexClient
+from discord_plex.cogs.plex.models import MediaType, PlexClient
 
 
 class TestPlexClientWrapperInit:
     def _make_client(self, base_url="http://localhost:32400", token="test-token"):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper(base_url, token)
 
@@ -32,7 +32,7 @@ class TestPlexClientWrapperInit:
 
 class TestGetThumbUrl:
     def _make_client(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper("http://plex:32400", "tok123")
 
@@ -52,7 +52,7 @@ class TestGetThumbUrl:
 
 class TestGetMediaType:
     def _get_media_type(self, plex_type):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper._get_media_type(plex_type)
 
@@ -86,7 +86,7 @@ class TestGetMediaType:
 
 class TestExtractExternalIds:
     def _make_client(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper("http://plex:32400", "tok")
 
@@ -152,7 +152,7 @@ class TestExtractExternalIds:
 
 class TestConvertToCachedMedia:
     def _make_client(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper("http://plex:32400", "tok")
 
@@ -223,7 +223,7 @@ class TestConvertToCachedMedia:
 
 class TestGetAllMedia:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -272,7 +272,7 @@ class TestGetAllMedia:
 
 class TestSearch:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -316,7 +316,7 @@ class TestSearch:
 
 class TestGetItemByKey:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -360,7 +360,7 @@ class TestGetItemByKey:
 
 class TestGetActiveStreams:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -469,7 +469,7 @@ class TestGetActiveStreams:
 
 class TestGetRecentlyAdded:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -529,7 +529,7 @@ class TestGetRecentlyAdded:
 
 class TestGetLibraries:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -554,7 +554,7 @@ class TestGetLibraries:
 
 class TestGetAvailableClients:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -586,7 +586,7 @@ class TestGetAvailableClients:
 
 class TestGenerateWatchTogetherLink:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -611,7 +611,7 @@ class TestGenerateWatchTogetherLink:
 
 class TestGetServerInfo:
     def _make_client_with_server(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         client = PlexClientWrapper("http://plex:32400", "tok")
         client._server = MagicMock()
@@ -641,7 +641,7 @@ class TestGetServerInfo:
 
 class TestGetLibraryForItem:
     def _make_client(self):
-        from cogs.plex.plex_client import PlexClientWrapper
+        from discord_plex.cogs.plex.plex_client import PlexClientWrapper
 
         return PlexClientWrapper("http://plex:32400", "tok")
 

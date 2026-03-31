@@ -1,53 +1,6 @@
-import asyncio
-import logging
-import sys
+"""Thin repo-local launcher retained for `python src/bot.py`."""
 
-from discord import Bot, Intents
-
-from cogs.plex import PlexCog
-from config.auth import BOT_TOKEN, validate_config
-
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-
-logger = logging.getLogger(__name__)
-
-
-async def main() -> None:
-    """Main entry point."""
-    validate_config()
-
-    # Configure intents
-    intents = Intents.default()
-    intents.presences = False
-    intents.members = True
-    intents.message_content = True
-    intents.guilds = True
-
-    # Create bot
-    bot = Bot(intents=intents)
-
-    # Add cog
-    plex_cog = PlexCog(bot)
-    bot.add_cog(plex_cog)
-
-    @bot.event
-    async def on_ready() -> None:
-        logger.info(f"Logged in as {bot.user}")
-        logger.info(f"Connected to {len(bot.guilds)} guilds")
-
-    @bot.event
-    async def on_disconnect() -> None:
-        logger.warning("Bot disconnected")
-
-    await bot.start(BOT_TOKEN)
-
+from discord_plex.bot import main
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
