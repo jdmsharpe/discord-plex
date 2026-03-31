@@ -59,7 +59,7 @@ from discord_plex import PlexCog
 bot.add_cog(PlexCog(bot=bot))
 ```
 
-Top-level `util.py` and `config/` remain repo-local implementation details and are not the installed public API surface.
+Only `src/bot.py` remains at the repository root as a thin launcher; package code should be imported from `discord_plex`.
 
 ## Getting Tokens
 
