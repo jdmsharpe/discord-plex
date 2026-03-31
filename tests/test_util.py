@@ -1,4 +1,4 @@
-from util import chunk_text, format_duration, format_size, truncate_text
+from discord_plex.util import chunk_text, format_duration, format_size, truncate_text
 
 
 class TestChunkText:

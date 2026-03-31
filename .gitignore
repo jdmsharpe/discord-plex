@@ -1,6 +1,7 @@
 # Environment
 .env
 .venv/
+.venv-wsl/
 venv/
 env/
 
@@ -28,6 +29,7 @@ wheels/
 
 # Testing
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 

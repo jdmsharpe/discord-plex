@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from cogs.plex.cache import LibraryCache
-from cogs.plex.models import CachedMedia, MediaType
+from discord_plex.cogs.plex.cache import LibraryCache
+from discord_plex.cogs.plex.models import CachedMedia, MediaType
 
 
 class TestLibraryCache:

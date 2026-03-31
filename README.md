@@ -47,6 +47,20 @@ Supports Python 3.10+ locally and in CI.
    python src/bot.py
    ```
 
+   `src/bot.py` remains a thin repo-local launcher that delegates to `discord_plex.bot.main`.
+
+### Using as a Cog
+
+To compose this repo into a larger bot, import the namespaced package:
+
+```python
+from discord_plex import PlexCog
+
+bot.add_cog(PlexCog(bot=bot))
+```
+
+Top-level `util.py` and `config/` remain repo-local implementation details and are not the installed public API surface.
+
 ## Getting Tokens
 
 - **Discord Bot Token**: [Discord Developer Portal](https://discord.com/developers/applications)
@@ -58,6 +72,8 @@ Supports Python 3.10+ locally and in CI.
 ### Testing
 
 Tests use pytest with pytest-asyncio (`asyncio_mode = "auto"`). All tests are mocked — no real API calls. GitHub Actions runs the suite on Python 3.10, 3.11, 3.12, and 3.13.
+The suite targets the namespaced package layout, with focused files such as `tests/test_cache.py`, `tests/test_embeds.py`, `tests/test_models.py`, `tests/test_overseerr_client.py`, and `tests/test_plex_client.py`.
+`tests/test_package_import.py` is the package import smoke test.
 
 ```bash
 # Run tests

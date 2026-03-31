@@ -1,69 +1,71 @@
-# Project: Discord Plex Bot
+# Discord Plex Bot - Developer Reference
 
-Discord bot for Plex and Overseerr integration using py-cord.
+## Supported Entry Points
 
-## Architecture
+- Launcher: `python src/bot.py` remains supported and delegates to `discord_plex.bot.main`.
+- Cog composition contract:
+
+  ```python
+  from discord_plex import PlexCog
+
+  bot.add_cog(PlexCog(bot=bot))
+  ```
+
+## Package Layout
 
 ```text
 src/
-  bot.py              # Entry point, bot setup
-  config/auth.py      # Environment variable loading
-  cogs/plex/
-    cog.py            # Slash commands (/plex, /request)
-    plex_client.py    # PlexAPI wrapper (extracts TMDB/IMDB IDs from GUIDs)
-    overseerr_client.py # Async Overseerr API client (poster URLs, season info)
-    cache.py          # In-memory library cache with fuzzy search
-    models.py         # Dataclasses (CachedMedia, ActiveStream, etc.)
-    views.py          # Discord UI components (selects, buttons, season picker)
-    embeds.py         # Discord embed builders
+├── bot.py                           # Thin repo-local launcher
+├── util.py                          # Repo-local helper
+├── config/                          # Repo-local helper
+└── discord_plex/
+    ├── __init__.py
+    ├── bot.py
+    ├── util.py
+    ├── config/
+    │   ├── __init__.py
+    │   └── auth.py
+    └── cogs/
+        ├── __init__.py
+        └── plex/
+            ├── __init__.py
+            ├── cache.py
+            ├── cog.py
+            ├── embeds.py
+            ├── library.py
+            ├── models.py
+            ├── overseerr_client.py
+            ├── plex_client.py
+            ├── requests.py
+            └── views.py
 ```
 
-## Key Patterns
+Top-level `util.py` and `config/` remain repo-local implementation details and are not part of the installed public API.
 
-- **py-cord 2.x**: Uses `discord.Bot`, `SlashCommandGroup`, `@option` decorators
-- **Async**: Plex calls run in executor (`loop.run_in_executor`) since PlexAPI is sync
-- **Caching**: `LibraryCache` holds all media with fuzzy search via `rapidfuzz`
-- **TMDB Posters**: Plex items store `tmdb_id` extracted from GUIDs, posters fetched via Overseerr
-- **Season Selection**: TV requests show `SeasonSelectView` to pick seasons before submitting
-- **Repeatable Views**: UI components stay active after interaction (no disabling)
+## Testing And Patch Targets
 
-## Common Tasks
+- `pytest` runs with `pythonpath = ["src"]`.
+- The test suite targets the namespaced package layout under `discord_plex...`.
+- `tests/test_package_import.py` is the package import smoke test.
+- New tests and patches should target real owners under `discord_plex...`.
+- Examples:
+  - `discord_plex.cogs.plex.cache.LibraryCache`
+  - `discord_plex.cogs.plex.overseerr_client.OverseerrClient`
+  - `discord_plex.cogs.plex.plex_client.PlexClientWrapper`
+  - `discord_plex.cogs.plex.embeds.create_media_embed`
 
-### Adding a new slash command
-
-1. Add method in `cog.py` under appropriate command group (`plex` or `request`)
-2. Use `@option()` decorator for parameters
-3. Call `await ctx.defer()` for slow operations
-4. Use `ctx.send_followup()` to respond
-
-### Modifying embeds
-
-Edit `embeds.py`. Functions like `create_media_embed()` return `discord.Embed`.
-
-### Adding new data fields
-
-1. Add field to dataclass in `models.py`
-2. Populate in `plex_client.py` or `overseerr_client.py`
-3. Display in `embeds.py`
-
-## Testing
-
-- Supported/tested Python versions: 3.10, 3.11, 3.12, 3.13
-- `Dockerfile` and `Dockerfile.test` accept `PYTHON_VERSION` build args (default `3.13`)
-- `pytest` from project root — pytest-native with `asyncio_mode = "auto"` (no `@pytest.mark.asyncio` needed)
-- `pythonpath = ["src"]` configured in `pyproject.toml` — use direct imports (`from util import ...`)
-- Mocked PlexAPI/aiohttp clients, no real API calls
+## Validation Commands
 
 ```bash
-python -m pytest -q
-docker build --build-arg PYTHON_VERSION=3.13 -f Dockerfile.test -t discord-plex-test . && docker run --rm discord-plex-test
+ruff check src/ tests/
+ruff format src/ tests/
+pyright src/
+pytest -q
 ```
 
-Tests cover models, embeds, cache, Overseerr client, Plex client, and utilities.
+## Provider Notes
 
-CI runs on push/PR to `main` via GitHub Actions. The workflow runs `pytest` on Python 3.10-3.13, performs a Docker smoke test, and pushes the Docker image only on direct pushes after both checks pass.
-
-## Environment Variables
-
-Required: `BOT_TOKEN`, `GUILD_IDS`, `PLEX_URL`, `PLEX_TOKEN`, `OVERSEERR_URL`, `OVERSEERR_API_KEY`
-Optional: `CACHE_REFRESH_MINUTES` (default 30), `ADMIN_USER_ID`
+- `discord_plex.cogs.plex.cog` owns cog lifecycle and slash-command registration.
+- Plex library command flows are delegated through `discord_plex.cogs.plex.library`.
+- Overseerr request command flows are delegated through `discord_plex.cogs.plex.requests`.
+- Keep `python src/bot.py` working when refactoring further.

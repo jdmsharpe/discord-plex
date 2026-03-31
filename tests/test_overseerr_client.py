@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock
 
-from cogs.plex.overseerr_client import OverseerrClient
+from discord_plex.cogs.plex.overseerr_client import OverseerrClient
 
 
 class TestOverseerrClient:

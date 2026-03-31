@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from cogs.plex.embeds import (
+from discord_plex.cogs.plex.embeds import (
     create_error_embed,
     create_media_embed,
     create_request_embed,
@@ -8,7 +8,7 @@ from cogs.plex.embeds import (
     create_success_embed,
     truncate,
 )
-from cogs.plex.models import (
+from discord_plex.cogs.plex.models import (
     ActiveStream,
     CachedMedia,
     MediaType,

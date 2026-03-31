@@ -1,4 +1,4 @@
-from cogs.plex.models import (
+from discord_plex.cogs.plex.models import (
     ActiveStream,
     CachedMedia,
     MediaType,
