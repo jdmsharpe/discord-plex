@@ -1,5 +1,47 @@
 # Discord Plex Bot - Developer Reference
 
+## Dev Setup
+
+```bash
+python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+cp .env.example .env  # fill in required values
+```
+
+## Environment Variables
+
+Required (bot exits at startup if missing):
+
+| Variable | Description |
+| -------- | ----------- |
+| `BOT_TOKEN` | Discord bot token |
+| `PLEX_TOKEN` | Plex Media Server token |
+| `OVERSEERR_API_KEY` | Overseerr API key |
+
+Optional (have defaults):
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `GUILD_IDS` | *(empty)* | Comma-separated guild IDs for guild-scoped slash commands |
+| `PLEX_URL` | `http://localhost:32400` | Plex server URL |
+| `OVERSEERR_URL` | `http://localhost:5055` | Overseerr URL |
+| `CACHE_REFRESH_MINUTES` | `30` | Library cache TTL |
+| `ADMIN_USER_ID` | *(none)* | Discord user ID for admin-only commands |
+
+## Docker
+
+```bash
+docker compose up -d    # build and start
+docker compose logs -f  # tail logs
+```
+
+> If Plex/Overseerr run in Docker too, put all containers on the same network (see comment in `docker-compose.yaml`).
+
+## Gotchas
+
+- Uses **`py-cord`** (not `discord.py`). The slash-command API differs; don't mix docs between the two.
+- `GUILD_IDS` empty → commands register globally (up to 1-hour propagation delay). Set it to a test guild ID during development for instant updates.
+
 ## Supported Entry Points
 
 - Launcher: `python src/bot.py` remains supported and delegates to `discord_plex.bot.main`.
