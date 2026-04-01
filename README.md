@@ -80,8 +80,17 @@ bot.add_cog(PlexCog(bot=bot))
 
 ## Discord Bot & Service Setup
 
-### Getting Your Tokens
-* **Discord Bot Token**: Go to the [Discord Developer Portal](https://discord.com/developers/applications), create an application, add a bot, and copy the token.
+### Discord Bot Permissions
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Create a new application and add a bot in the "Bot" section.
+3. Enable **Server Members Intent** and **Message Content Intent** under Privileged Gateway Intents.
+4. Copy the bot token and add it to your `.env` file.
+5. Go to OAuth2 > URL Generator.
+6. Select scopes: `bot`, `applications.commands`.
+7. Select permissions: `Send Messages`, `Read Message History`, `Use Slash Commands`, `Embed Links`, `Attach Files`.
+8. Use the generated URL to invite the bot to your server.
+
+### Getting Service Tokens
 * **Plex Token**: In Plex, go to Settings > Account > Authorized Devices, or extract it via your browser's developer tools.
 * **Overseerr API Key**: In Overseerr, go to Settings > General > API Key.
 
@@ -116,3 +125,6 @@ pyright src/
 
 ### CI
 Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.10-3.13, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
+
+## License
+MIT License - see [LICENSE](LICENSE) for details.
