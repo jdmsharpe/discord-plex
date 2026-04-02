@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
@@ -109,8 +110,40 @@ class TestLibraryCache:
     def test_get_stats(self):
         self._populate_cache()
         stats = self.cache.get_stats()
+
+        assert set(stats.keys()) == {
+            "total_items",
+            "by_type",
+            "by_library",
+            "last_refresh",
+            "is_stale",
+        }
         assert stats["total_items"] == 4
-        assert "by_type" in stats
-        assert "by_library" in stats
+        assert isinstance(stats["total_items"], int)
+        assert isinstance(stats["by_type"], dict)
+        assert isinstance(stats["by_library"], dict)
+        assert isinstance(stats["last_refresh"], str)
+        assert isinstance(stats["is_stale"], bool)
         assert stats["by_type"]["show"] == 2
         assert stats["by_type"]["movie"] == 2
+        assert stats["by_library"]["TV Shows"] == 2
+        assert stats["by_library"]["Movies"] == 2
+        assert stats["last_refresh"] is not None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_cancels_background_refresh_task(self):
+        self.mock_plex_client.get_all_media.return_value = []
+
+        await self.cache.start_background_refresh()
+        refresh_task = self.cache._refresh_task
+
+        assert refresh_task is not None
+
+        # Let the loop run once so task enters its sleep cycle
+        await asyncio.sleep(0.05)
+
+        await self.cache.shutdown()
+
+        assert self.cache._refresh_task is None
+        assert refresh_task.done()
+        assert refresh_task.cancelled()

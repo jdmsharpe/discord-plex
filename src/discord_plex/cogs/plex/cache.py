@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import TypedDict
 
 from rapidfuzz import fuzz, process
 
@@ -8,6 +9,16 @@ from .models import CachedMedia, MediaType
 from .plex_client import PlexClientWrapper
 
 logger = logging.getLogger(__name__)
+
+
+class CacheStats(TypedDict):
+    """Structured statistics returned by :meth:`LibraryCache.get_stats`."""
+
+    total_items: int
+    by_type: dict[str, int]
+    by_library: dict[str, int]
+    last_refresh: str | None
+    is_stale: bool
 
 
 class LibraryCache:
@@ -39,22 +50,43 @@ class LibraryCache:
         if self._refresh_task is not None:
             return
 
-        async def refresh_loop():
+        async def refresh_loop() -> None:
             while True:
                 try:
                     await self.refresh()
+                    await asyncio.sleep(self.refresh_minutes * 60)
+                except asyncio.CancelledError:
+                    logger.debug("Background cache refresh loop cancelled")
+                    raise
                 except Exception as e:
                     logger.error(f"Background cache refresh error: {e}")
-                await asyncio.sleep(self.refresh_minutes * 60)
+                    await asyncio.sleep(self.refresh_minutes * 60)
 
         self._refresh_task = asyncio.create_task(refresh_loop())
         logger.info("Started background cache refresh task")
 
+    async def shutdown(self) -> None:
+        """Stop and await the background refresh task."""
+        task = self._refresh_task
+        if task is None:
+            return
+
+        self._refresh_task = None
+        task.cancel()
+
+        try:
+            await task
+        except asyncio.CancelledError:
+            logger.info("Background cache refresh task cancelled")
+
+        logger.info("Stopped background cache refresh task")
+
     def stop_background_refresh(self) -> None:
-        """Stop the background refresh task."""
-        if self._refresh_task:
-            self._refresh_task.cancel()
-            self._refresh_task = None
+        """Stop the background refresh task without awaiting completion."""
+        task = self._refresh_task
+        self._refresh_task = None
+        if task:
+            task.cancel()
             logger.info("Stopped background cache refresh task")
 
     async def refresh(self) -> None:
@@ -240,10 +272,10 @@ class LibraryCache:
 
         return items
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> CacheStats:
         """Get cache statistics."""
-        type_counts = {}
-        library_counts = {}
+        type_counts: dict[str, int] = {}
+        library_counts: dict[str, int] = {}
 
         for item in self._cache.values():
             # Count by type
