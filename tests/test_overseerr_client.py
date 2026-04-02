@@ -98,3 +98,21 @@ class TestOverseerrClient:
         client._get_available_seasons.assert_called_once_with(12345)
         assert request_calls[0]["json"]["seasons"] == [1, 2, 3]
         await client.close()
+
+    async def test_search_passes_raw_query_to_request_params(self):
+        client = OverseerrClient("http://test:5055", "test-api-key")
+        request_calls = []
+        raw_query = "Star Wars: A New Hope + Special"
+
+        async def mock_request(method, endpoint, json=None, params=None):
+            request_calls.append(
+                {"method": method, "endpoint": endpoint, "json": json, "params": params}
+            )
+            return {"results": []}
+
+        client._request = mock_request
+        await client.search(raw_query, page=3)
+
+        assert len(request_calls) == 1
+        assert request_calls[0]["params"] == {"query": raw_query, "page": 3}
+        await client.close()

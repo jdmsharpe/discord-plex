@@ -83,7 +83,7 @@ async def plex_search(
 
     async def on_select(interaction: Interaction, media: CachedMedia) -> None:
         await interaction.response.defer()
-        await show_media_info(cog, ctx, media, followup=True)
+        await show_media_info(cog, ctx, media)
 
     view = MediaSelectView(
         display_results,
@@ -97,7 +97,6 @@ async def show_media_info(
     cog: PlexCog,
     ctx: ApplicationContext,
     media: CachedMedia,
-    followup: bool = False,
 ) -> None:
     """Display detailed media info."""
     thumb_url = None
@@ -119,10 +118,7 @@ async def show_media_info(
     embed = create_media_embed(media, thumb_url)
     view = MediaInfoView(media, plex_web_url)
 
-    if followup:
-        await ctx.send_followup(embed=embed, view=view)
-    else:
-        await ctx.send_followup(embed=embed, view=view)
+    await ctx.send_followup(embed=embed, view=view)
 
 
 async def plex_playing(cog: PlexCog, ctx: ApplicationContext) -> None:
