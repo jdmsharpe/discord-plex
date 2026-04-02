@@ -2,6 +2,7 @@ from datetime import datetime
 
 from discord import Colour, Embed
 
+from .cache import CacheStats
 from .models import (
     ActiveStream,
     CachedMedia,
@@ -329,7 +330,7 @@ def create_request_queue_embed(requests: list[OverseerrRequest]) -> Embed:
 
 def create_server_stats_embed(
     server_info: dict,
-    cache_stats: dict,
+    cache_stats: CacheStats,
 ) -> Embed:
     """Create an embed for server statistics."""
     embed = Embed(
@@ -360,7 +361,7 @@ def create_server_stats_embed(
 
     # Library stats
     if cache_stats:
-        by_type = cache_stats.get("by_type", {})
+        by_type = cache_stats["by_type"]
         type_lines = [f"{t.title()}: {c}" for t, c in sorted(by_type.items())]
         embed.add_field(
             name="Library",
@@ -368,7 +369,7 @@ def create_server_stats_embed(
             inline=True,
         )
 
-        by_library = cache_stats.get("by_library", {})
+        by_library = cache_stats["by_library"]
         library_lines = [f"{lib}: {count}" for lib, count in sorted(by_library.items())]
         embed.add_field(
             name="By Section",

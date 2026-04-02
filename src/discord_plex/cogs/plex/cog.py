@@ -63,6 +63,7 @@ class PlexCog(commands.Cog):
 
         # Initialize cache
         self.cache = LibraryCache(self.plex_client, CACHE_REFRESH_MINUTES)
+        self._shutdown_task: asyncio.Task[None] | None = None
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -75,11 +76,31 @@ class PlexCog(commands.Cog):
         # Sync commands
         await self.bot.sync_commands()
 
+    async def shutdown(self) -> None:
+        """Gracefully stop background tasks and close clients."""
+        await self.cache.shutdown()
+        await self.overseerr_client.close()
+        self.logger.info("PlexCog shutdown complete")
+
     def cog_unload(self) -> None:
         """Called when the cog is unloaded."""
-        self.cache.stop_background_refresh()
-        asyncio.create_task(self.overseerr_client.close())
-        self.logger.info("PlexCog unloaded")
+        task = self._shutdown_task
+        if task is None or task.done():
+            task = self.bot.loop.create_task(self.shutdown())
+            self._shutdown_task = task
+
+            def _on_shutdown_complete(done_task: asyncio.Task[None]) -> None:
+                if done_task.cancelled():
+                    self.logger.info("PlexCog shutdown task cancelled")
+                    return
+
+                exc = done_task.exception()
+                if exc:
+                    self.logger.error("PlexCog shutdown failed", exc_info=exc)
+
+            task.add_done_callback(_on_shutdown_complete)
+
+        self.logger.info("PlexCog unload requested")
 
     # ==================== Plex Commands ====================
 
