@@ -1,7 +1,6 @@
 import contextlib
 import logging
 from datetime import datetime
-from urllib.parse import quote
 
 import aiohttp
 
@@ -68,13 +67,11 @@ class OverseerrClient:
     async def search(self, query: str, page: int = 1) -> list[OverseerrSearchResult]:
         """Search for movies and TV shows."""
         results = []
-        # URL-encode the query to handle special characters
-        encoded_query = quote(query, safe="")
-        logger.debug(f"Overseerr search: query='{query}', encoded='{encoded_query}'")
+        logger.debug(f"Overseerr search: query='{query}'")
         data = await self._request(
             "GET",
             "/search",
-            params={"query": encoded_query, "page": page},
+            params={"query": query, "page": page},
         )
 
         if not data or "results" not in data:
