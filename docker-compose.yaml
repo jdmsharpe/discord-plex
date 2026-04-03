@@ -1,12 +1,9 @@
 services:
   python-bot:
     build: .
-    container_name: discord-plex
-    restart: unless-stopped
     env_file:
       - .env
-    networks:
-      - default
+    restart: unless-stopped
 
 # Note: If running Plex/Overseerr in Docker, they should be on the same network
 # or use host networking to ensure connectivity.
