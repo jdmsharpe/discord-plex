@@ -7,7 +7,7 @@ from .auth import (
     OVERSEERR_URL,
     PLEX_TOKEN,
     PLEX_URL,
-    validate_config,
+    validate_required_config,
 )
 
 __all__ = [
@@ -19,5 +19,5 @@ __all__ = [
     "OVERSEERR_URL",
     "PLEX_TOKEN",
     "PLEX_URL",
-    "validate_config",
+    "validate_required_config",
 ]

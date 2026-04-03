@@ -57,6 +57,11 @@ class PlexCog(commands.Cog):
         self.bot = bot
         self.logger = logging.getLogger(f"{__name__}.PlexCog")
 
+        if PLEX_TOKEN is None or OVERSEERR_API_KEY is None or CACHE_REFRESH_MINUTES is None:
+            raise RuntimeError(
+                "PlexCog requires validated Plex and Overseerr configuration before startup."
+            )
+
         # Initialize clients
         self.plex_client = PlexClientWrapper(PLEX_URL, PLEX_TOKEN)
         self.overseerr_client = OverseerrClient(OVERSEERR_URL, OVERSEERR_API_KEY)

@@ -1,18 +1,17 @@
 """Thin launcher for the discord-plex bot."""
 
 import logging
-import sys
 
 from discord import Bot, Intents
 
 from . import PlexCog
-from .config import BOT_TOKEN, validate_config
+from .config import BOT_TOKEN, validate_required_config
 
 logger = logging.getLogger(__name__)
 
 
 def build_bot() -> Bot:
-    validate_config()
+    validate_required_config()
 
     intents = Intents.default()
     intents.presences = False
@@ -36,11 +35,6 @@ def build_bot() -> Bot:
 
 
 def main() -> None:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-    )
     bot = build_bot()
     bot.run(BOT_TOKEN)
 

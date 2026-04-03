@@ -1,28 +1,31 @@
 import os
-import sys
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+REQUIRED_ENV_VARS = ("BOT_TOKEN", "PLEX_TOKEN", "OVERSEERR_API_KEY")
 
-_CONFIG_ERRORS: list[str] = []
+
+def _get_env_or_none(name: str) -> str | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    stripped_value = value.strip()
+    return stripped_value or None
 
 
-def _parse_int_env(name: str, default: int | None = None, required: bool = False) -> int | None:
-    raw_value = os.getenv(name)
-    if raw_value is None or not raw_value.strip():
-        if required and default is None:
-            _CONFIG_ERRORS.append(f"- {name} is required and must be an integer.")
+def _parse_int_env(name: str, default: int | None = None) -> int | None:
+    raw_value = _get_env_or_none(name)
+    if raw_value is None:
         return default
 
     try:
-        return int(raw_value.strip())
-    except ValueError:
-        _CONFIG_ERRORS.append(
-            f"- {name} must be an integer, but got {raw_value!r}.",
-        )
-        return default
+        return int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(
+            f"Invalid {name} value. Expected an integer, but received {raw_value!r}."
+        ) from exc
 
 
 def _parse_csv_int_env(name: str) -> list[int]:
@@ -31,64 +34,44 @@ def _parse_csv_int_env(name: str) -> list[int]:
         return []
 
     values: list[int] = []
-    invalid_values: list[str] = []
     for token in raw_value.split(","):
-        token = token.strip()
-        if not token:
+        stripped_token = token.strip()
+        if not stripped_token:
             continue
 
         try:
-            values.append(int(token))
-        except ValueError:
-            invalid_values.append(token)
-
-    if invalid_values:
-        _CONFIG_ERRORS.append(
-            "- "
-            f"{name} must be a comma-separated list of integers, but got invalid value(s): "
-            + ", ".join(repr(value) for value in invalid_values)
-            + ".",
-        )
+            values.append(int(stripped_token))
+        except ValueError as exc:
+            raise RuntimeError(
+                f"Invalid {name} value. Expected a comma-separated list of integers, "
+                f"but received invalid token: {stripped_token!r}."
+            ) from exc
 
     return values
 
 
 # Discord
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN = _get_env_or_none("BOT_TOKEN")
 GUILD_IDS = _parse_csv_int_env("GUILD_IDS")
 
 # Plex
 PLEX_URL = os.getenv("PLEX_URL", "http://localhost:32400")
-PLEX_TOKEN = os.getenv("PLEX_TOKEN", "")
+PLEX_TOKEN = _get_env_or_none("PLEX_TOKEN")
 
 # Overseerr
 OVERSEERR_URL = os.getenv("OVERSEERR_URL", "http://localhost:5055")
-OVERSEERR_API_KEY = os.getenv("OVERSEERR_API_KEY", "")
+OVERSEERR_API_KEY = _get_env_or_none("OVERSEERR_API_KEY")
 
 # Optional Settings
 CACHE_REFRESH_MINUTES = _parse_int_env("CACHE_REFRESH_MINUTES", default=30)
 ADMIN_USER_ID = _parse_int_env("ADMIN_USER_ID", default=None)
 
-_REQUIRED_VARS = {
-    "BOT_TOKEN": BOT_TOKEN,
-    "PLEX_TOKEN": PLEX_TOKEN,
-    "OVERSEERR_API_KEY": OVERSEERR_API_KEY,
-}
 
-
-def validate_config() -> None:
-    """Check that required environment variables are set. Call at bot startup."""
-    missing = [name for name, val in _REQUIRED_VARS.items() if not val]
-    errors: list[str] = []
-    if missing:
-        errors.append(
-            "- Missing required environment variables: " + ", ".join(missing) + ".",
+def validate_required_config() -> None:
+    missing_vars = [name for name in REQUIRED_ENV_VARS if _get_env_or_none(name) is None]
+    if missing_vars:
+        missing_list = ", ".join(missing_vars)
+        raise RuntimeError(
+            "Missing required environment configuration: "
+            f"{missing_list}. Please set these variables before starting the bot."
         )
-    errors.extend(_CONFIG_ERRORS)
-
-    if errors:
-        print("ERROR: Invalid configuration detected.", file=sys.stderr)
-        print("Please fix the following before restarting:", file=sys.stderr)
-        for error in errors:
-            print(error, file=sys.stderr)
-        sys.exit(1)

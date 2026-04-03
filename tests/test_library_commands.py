@@ -25,7 +25,9 @@ def media_item() -> CachedMedia:
 async def test_show_media_info_sends_single_followup_with_media_view(media_item: CachedMedia):
     ctx = SimpleNamespace(send_followup=AsyncMock())
     cog = SimpleNamespace(
-        overseerr_client=SimpleNamespace(get_poster_url=AsyncMock(return_value="https://img/poster.jpg")),
+        overseerr_client=SimpleNamespace(
+            get_poster_url=AsyncMock(return_value="https://img/poster.jpg")
+        ),
         plex_client=SimpleNamespace(
             get_thumb_url=Mock(return_value="https://plex/thumb.jpg"),
             server=SimpleNamespace(machineIdentifier="server-1"),
