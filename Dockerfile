@@ -1,14 +1,10 @@
 ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim
 
-WORKDIR /bot
+WORKDIR /app
 
-# Install dependencies first (cached layer)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy source code
+COPY pyproject.toml README.md ./
 COPY src/ ./src/
+RUN python -m pip install --no-cache-dir .
 
-# Run the bot
 CMD ["python", "src/bot.py"]
