@@ -7,14 +7,19 @@ import pytest
 MODULE_NAME = "discord_plex.config.auth"
 
 
-def _import_fresh_auth_module(monkeypatch: pytest.MonkeyPatch):
+def _import_fresh_auth_module(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    set_required_env: bool = True,
+):
     sys.modules.pop(MODULE_NAME, None)
     dotenv_module = ModuleType("dotenv")
     dotenv_module.load_dotenv = lambda *_, **__: None
     monkeypatch.setitem(sys.modules, "dotenv", dotenv_module)
-    monkeypatch.setenv("BOT_TOKEN", "token")
-    monkeypatch.setenv("PLEX_TOKEN", "plex")
-    monkeypatch.setenv("OVERSEERR_API_KEY", "key")
+    if set_required_env:
+        monkeypatch.setenv("BOT_TOKEN", "token")
+        monkeypatch.setenv("PLEX_TOKEN", "plex")
+        monkeypatch.setenv("OVERSEERR_API_KEY", "key")
     return importlib.import_module(MODULE_NAME)
 
 
@@ -23,7 +28,7 @@ def test_validate_required_config_reports_missing_vars(monkeypatch):
     monkeypatch.delenv("PLEX_TOKEN", raising=False)
     monkeypatch.delenv("OVERSEERR_API_KEY", raising=False)
 
-    auth = _import_fresh_auth_module(monkeypatch)
+    auth = _import_fresh_auth_module(monkeypatch, set_required_env=False)
 
     with pytest.raises(RuntimeError, match="BOT_TOKEN, PLEX_TOKEN, OVERSEERR_API_KEY"):
         auth.validate_required_config()
@@ -34,7 +39,7 @@ def test_validate_required_config_rejects_whitespace_only_values(monkeypatch):
     monkeypatch.setenv("PLEX_TOKEN", "\t")
     monkeypatch.setenv("OVERSEERR_API_KEY", " ")
 
-    auth = _import_fresh_auth_module(monkeypatch)
+    auth = _import_fresh_auth_module(monkeypatch, set_required_env=False)
 
     with pytest.raises(RuntimeError, match="BOT_TOKEN, PLEX_TOKEN, OVERSEERR_API_KEY"):
         auth.validate_required_config()
