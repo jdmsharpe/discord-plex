@@ -39,14 +39,25 @@ A Discord bot built for seamless Plex and Overseerr integration. It allows users
 
 ### Installation
 1. Clone the repository and navigate to the project directory.
-2. Install dependencies:
+2. Create and activate a virtual environment:
    ```bash
-   pip install -r requirements.txt
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
-3. Copy the environment example file:
+3. Install the package and its runtime dependencies:
+   ```bash
+   python -m pip install .
+   ```
+4. Copy the environment example file:
    ```bash
    cp .env.example .env
    ```
+
+### Contributor Setup
+Install development tooling for tests, linting, and type checking:
+```bash
+python -m pip install -e ".[dev]"
+```
 
 ### Configuration (`.env`)
 | Variable | Required | Description |
@@ -104,6 +115,9 @@ bot.add_cog(PlexCog(bot=bot))
 ### Testing
 Tests use `pytest` with `pytest-asyncio` (`asyncio_mode = "auto"`). All tests are mocked (no real API calls). 
 ```bash
+# Install developer tooling if you have not already
+python -m pip install -e ".[dev]"
+
 # Run tests locally
 python -m pytest -q
 
