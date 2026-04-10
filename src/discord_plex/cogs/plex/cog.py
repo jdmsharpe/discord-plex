@@ -113,11 +113,11 @@ class PlexCog(commands.Cog):
     @option("query", description="Search query", required=True)
     @option(
         "media_type",
-        description="Filter by type",
+        description="Filter by type. (default: not set)",
         required=False,
         choices=["movie", "show", "artist"],
     )
-    @option("library", description="Filter by library name", required=False)
+    @option("library", description="Filter by library name. (default: not set)", required=False)
     async def plex_search(
         self,
         ctx: ApplicationContext,
@@ -134,10 +134,10 @@ class PlexCog(commands.Cog):
         await library_commands.plex_playing(self, ctx)
 
     @plex.command(name="recent", description="Show recently added media")
-    @option("library", description="Filter by library name", required=False)
+    @option("library", description="Filter by library name. (default: not set)", required=False)
     @option(
         "limit",
-        description="Number of items (default 10)",
+        description="Number of items. (default: 10)",
         required=False,
         min_value=1,
         max_value=25,
@@ -162,7 +162,7 @@ class PlexCog(commands.Cog):
     @option("query", description="Search query", required=True)
     @option(
         "media_type",
-        description="Type of media",
+        description="Type of media. (default: not set)",
         required=False,
         choices=["movie", "tv"],
     )
@@ -333,7 +333,7 @@ class PlexCog(commands.Cog):
 
     @request.command(name="deny", description="Deny a request (Admin)")
     @option("request_id", description="Request ID to deny", required=True)
-    @option("reason", description="Reason for denial", required=False)
+    @option("reason", description="Reason for denial. (default: not set)", required=False)
     @is_admin()
     async def request_deny(
         self,
