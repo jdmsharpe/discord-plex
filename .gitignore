@@ -46,3 +46,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Tool/editor artifacts
+.serena/
+.codex/
