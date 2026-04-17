@@ -84,6 +84,7 @@ python -m pip install -e ".[dev]"
 | `PLEX_TOKEN` | **Yes** | Your Plex authentication token |
 | `OVERSEERR_URL` | **Yes** | URL to your Overseerr instance (e.g., `http://your-host:5055`) |
 | `OVERSEERR_API_KEY` | **Yes** | Your Overseerr API key |
+| `LOG_FORMAT` | No | `text` (default) for human-readable logs, or `json` for structured JSON-lines output with per-request IDs |
 
 ### Running the Bot
 

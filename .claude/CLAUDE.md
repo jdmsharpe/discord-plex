@@ -27,6 +27,7 @@ Optional (have defaults):
 | `OVERSEERR_URL` | `http://localhost:5055` | Overseerr URL |
 | `CACHE_REFRESH_MINUTES` | `30` | Library cache TTL |
 | `ADMIN_USER_ID` | *(none)* | Discord user ID for admin-only commands |
+| `LOG_FORMAT` | `text` | Set to `json` for structured JSON-lines output |
 
 ## Docker
 
@@ -61,6 +62,7 @@ src/
 └── discord_plex/
     ├── __init__.py
     ├── bot.py
+    ├── logging_setup.py             # Structured logging + request-id ContextVar
     ├── util.py
     ├── config/
     │   ├── __init__.py
@@ -109,3 +111,9 @@ pytest -q
 - Plex library command flows are delegated through `discord_plex.cogs.plex.library`.
 - Overseerr request command flows are delegated through `discord_plex.cogs.plex.requests`.
 - Keep `python src/bot.py` working when refactoring further.
+
+## Runtime Conventions (Cross-Project)
+
+- Unlike the AI bots in this family, discord-plex does not use a pricing YAML — it has no token-based API costs.
+- The repo pre-commit hook (`.githooks/pre-commit`) runs `ruff format` (auto-applied + re-staged), then `ruff check` (blocking), then `pyright` and `pytest --collect-only` as warning-only smoke tests. Resolves tools from `.venv/bin` or `.venv/Scripts` first, then `PATH`.
+- **Request IDs**: `cog_before_invoke` binds a fresh 8-char hex id via `discord_plex.logging_setup.bind_request_id` on every slash command. All downstream `logger.info`/`warning`/`error` calls automatically include the id. Set `LOG_FORMAT=json` for JSON-lines output.

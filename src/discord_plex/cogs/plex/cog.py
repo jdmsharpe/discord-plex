@@ -15,6 +15,7 @@ from ...config.auth import (
     PLEX_TOKEN,
     PLEX_URL,
 )
+from ...logging_setup import bind_request_id
 from . import library as library_commands
 from . import requests as request_commands
 from .cache import LibraryCache
@@ -69,6 +70,10 @@ class PlexCog(commands.Cog):
         # Initialize cache
         self.cache = LibraryCache(self.plex_client, CACHE_REFRESH_MINUTES)
         self._shutdown_task: asyncio.Task[None] | None = None
+
+    async def cog_before_invoke(self, ctx) -> None:
+        """Bind a fresh request id on every slash-command entry into this cog."""
+        bind_request_id()
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:

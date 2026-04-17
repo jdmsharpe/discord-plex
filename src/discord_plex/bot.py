@@ -6,6 +6,7 @@ from discord import Bot, Intents
 
 from . import PlexCog
 from .config import BOT_TOKEN, validate_required_config
+from .logging_setup import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ def build_bot() -> Bot:
 
 
 def main() -> None:
+    configure_logging()
     bot = build_bot()
     bot.run(BOT_TOKEN)
 
