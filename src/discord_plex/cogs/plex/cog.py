@@ -349,36 +349,6 @@ class PlexCog(commands.Cog):
         """Deny a pending request."""
         await request_commands.request_deny(self, ctx, request_id, reason)
 
-    async def _approve_request(self, interaction: Interaction, request_id: int) -> None:
-        """Callback for approve button."""
-        self.logger.info(f"Approving request #{request_id} by {interaction.user}")
-        success = await self.overseerr_client.approve_request(request_id)
-        if success:
-            self.logger.info(f"Request #{request_id} approved successfully")
-            await interaction.followup.send(
-                embed=create_success_embed(f"Request #{request_id} has been approved!")
-            )
-        else:
-            self.logger.error(f"Failed to approve request #{request_id}")
-            await interaction.followup.send(
-                embed=create_error_embed(f"Failed to approve request #{request_id}")
-            )
-
-    async def _deny_request(self, interaction: Interaction, request_id: int) -> None:
-        """Callback for deny button."""
-        self.logger.info(f"Denying request #{request_id} by {interaction.user}")
-        success = await self.overseerr_client.decline_request(request_id)
-        if success:
-            self.logger.info(f"Request #{request_id} denied successfully")
-            await interaction.followup.send(
-                embed=create_success_embed(f"Request #{request_id} has been denied.")
-            )
-        else:
-            self.logger.error(f"Failed to deny request #{request_id}")
-            await interaction.followup.send(
-                embed=create_error_embed(f"Failed to deny request #{request_id}")
-            )
-
     async def _approve_request_by_id(
         self,
         ctx: ApplicationContext,

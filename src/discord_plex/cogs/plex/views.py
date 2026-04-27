@@ -1,70 +1,10 @@
 from collections.abc import Callable
 from typing import Any
 
-import discord
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
 
 from .models import CachedMedia, OverseerrSearchResult
-
-
-class PaginationView(View):
-    """Generic pagination view for lists."""
-
-    def __init__(
-        self,
-        items: list[Any],
-        per_page: int,
-        embed_generator: Callable[[list[Any], int, int], discord.Embed],
-        timeout: float | None = None,
-    ):
-        super().__init__(timeout=timeout)
-        self.items = items
-        self.per_page = per_page
-        self.embed_generator = embed_generator
-        self.current_page = 1
-        self.total_pages = max(1, (len(items) + per_page - 1) // per_page)
-        self._update_buttons()
-
-    def _update_buttons(self) -> None:
-        """Update button states based on current page."""
-        for child in self.children:
-            if isinstance(child, Button):
-                if child.custom_id == "prev":
-                    child.disabled = self.current_page <= 1
-                elif child.custom_id == "next":
-                    child.disabled = self.current_page >= self.total_pages
-
-    def get_current_embed(self) -> discord.Embed:
-        """Get embed for current page."""
-        start = (self.current_page - 1) * self.per_page
-        end = min(start + self.per_page, len(self.items))
-        page_items = self.items[start:end]
-        return self.embed_generator(page_items, self.current_page, self.total_pages)
-
-    @button(label="◀️ Prev", style=ButtonStyle.secondary, custom_id="prev")
-    async def prev_button(self, button: Button, interaction: Interaction) -> None:
-        if self.current_page > 1:
-            self.current_page -= 1
-            self._update_buttons()
-            await interaction.response.edit_message(
-                embed=self.get_current_embed(),
-                view=self,
-            )
-        else:
-            await interaction.response.defer()
-
-    @button(label="Next ▶️", style=ButtonStyle.secondary, custom_id="next")
-    async def next_button(self, button: Button, interaction: Interaction) -> None:
-        if self.current_page < self.total_pages:
-            self.current_page += 1
-            self._update_buttons()
-            await interaction.response.edit_message(
-                embed=self.get_current_embed(),
-                view=self,
-            )
-        else:
-            await interaction.response.defer()
 
 
 class MediaSelectView(View):
@@ -210,32 +150,6 @@ class ConfirmView(View):
         await interaction.response.defer()
         if self.cancel_callback:
             await self.cancel_callback(interaction)
-
-
-class RequestActionView(View):
-    """View for admin actions on requests (approve/deny)."""
-
-    def __init__(
-        self,
-        request_id: int,
-        approve_callback: Callable[[Interaction, int], Any],
-        deny_callback: Callable[[Interaction, int], Any],
-        timeout: float | None = None,
-    ):
-        super().__init__(timeout=timeout)
-        self.request_id = request_id
-        self.approve_callback = approve_callback
-        self.deny_callback = deny_callback
-
-    @button(label="Approve", style=ButtonStyle.success, emoji="✅", custom_id="approve")
-    async def approve_btn(self, button: Button, interaction: Interaction) -> None:
-        await interaction.response.defer()
-        await self.approve_callback(interaction, self.request_id)
-
-    @button(label="Deny", style=ButtonStyle.danger, emoji="❌", custom_id="deny")
-    async def deny_btn(self, button: Button, interaction: Interaction) -> None:
-        await interaction.response.defer()
-        await self.deny_callback(interaction, self.request_id)
 
 
 class MediaInfoView(View):

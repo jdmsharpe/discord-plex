@@ -83,38 +83,6 @@ def create_media_embed(
     return embed
 
 
-def create_search_results_embed(
-    results: list[CachedMedia],
-    query: str,
-    page: int = 1,
-    per_page: int = 10,
-) -> Embed:
-    """Create an embed for search results list."""
-    total_pages = (len(results) + per_page - 1) // per_page
-    start_idx = (page - 1) * per_page
-    end_idx = min(start_idx + per_page, len(results))
-    page_results = results[start_idx:end_idx]
-
-    embed = Embed(
-        title=f'🔍 Search results for "{query}"',
-        color=PLEX_COLOR,
-    )
-
-    if not page_results:
-        embed.description = "No results found."
-        return embed
-
-    lines = []
-    for i, media in enumerate(page_results, start=start_idx + 1):
-        year_str = f" ({media.year})" if media.year else ""
-        lines.append(f"**{i}.** {media.type_emoji} {media.title}{year_str}")
-
-    embed.description = "\n".join(lines)
-    embed.set_footer(text=f"Page {page} of {total_pages} • Use /plex info <title> for details")
-
-    return embed
-
-
 def create_stream_embed(stream: ActiveStream, thumb_url: str | None = None) -> Embed:
     """Create an embed for an active stream."""
     year_str = f" ({stream.media_year})" if stream.media_year else ""
