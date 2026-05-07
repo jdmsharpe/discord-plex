@@ -294,19 +294,19 @@ class PlexClientWrapper:
 
     def get_available_clients(self) -> list[PlexClient]:
         """Get list of available Plex clients."""
-        clients = []
+        clients: list[PlexClient] = []
         try:
-            for client in self.server.clients():
-                clients.append(
-                    PlexClient(
-                        machine_identifier=client.machineIdentifier,
-                        name=client.title,
-                        device=getattr(client, "device", None),
-                        platform=getattr(client, "platform", None),
-                        product=getattr(client, "product", None),
-                        state=getattr(client, "state", None),
-                    )
+            clients.extend(
+                PlexClient(
+                    machine_identifier=client.machineIdentifier,
+                    name=client.title,
+                    device=getattr(client, "device", None),
+                    platform=getattr(client, "platform", None),
+                    product=getattr(client, "product", None),
+                    state=getattr(client, "state", None),
                 )
+                for client in self.server.clients()
+            )
         except Exception as e:
             logger.error(f"Error fetching clients: {e}")
         return clients
