@@ -408,6 +408,6 @@ class PlexCog(commands.Cog):
         else:
             self.logger.error(f"Command error: {error}", exc_info=True)
             await ctx.respond(
-                embed=create_error_embed(f"An error occurred: {str(error)}"),
+                embed=create_error_embed(f"An error occurred: {error!s}"),
                 ephemeral=True,
             )

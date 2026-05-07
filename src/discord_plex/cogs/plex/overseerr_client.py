@@ -53,13 +53,12 @@ class OverseerrClient:
             async with session.request(method, url, json=json, params=params) as response:
                 if response.status == 200 or response.status == 201:
                     return await response.json()
-                elif response.status == 404:
+                if response.status == 404:
                     logger.warning(f"Not found: {endpoint}")
                     return None
-                else:
-                    text = await response.text()
-                    logger.error(f"API error {response.status}: {text}")
-                    return None
+                text = await response.text()
+                logger.error(f"API error {response.status}: {text}")
+                return None
         except Exception as e:
             logger.error(f"Request error for {endpoint}: {e}")
             return None
