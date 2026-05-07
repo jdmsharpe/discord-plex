@@ -139,7 +139,7 @@ class TestExtractExternalIds:
     def test_invalid_tmdb_id_skipped(self):
         client = self._make_client()
         item = self._make_item_with_guids(["tmdb://not-a-number"])
-        tmdb_id, imdb_id = client._extract_external_ids(item)
+        tmdb_id, _imdb_id = client._extract_external_ids(item)
         assert tmdb_id is None
 
     def test_ignores_unknown_guid_prefix(self):
