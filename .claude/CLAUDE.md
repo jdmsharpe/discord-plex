@@ -4,7 +4,7 @@
 
 ```bash
 python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt
+pip install -e ".[dev]"
 cp .env.example .env  # fill in required values
 ```
 
@@ -117,3 +117,4 @@ pytest -q
 - Unlike the AI bots in this family, discord-plex does not use a pricing YAML — it has no token-based API costs.
 - The repo pre-commit hook (`.githooks/pre-commit`) runs `ruff format` (auto-applied + re-staged), then `ruff check` (blocking), then `pyright` and `pytest --collect-only` as warning-only smoke tests. Resolves tools from `.venv/bin` or `.venv/Scripts` first, then `PATH`.
 - **Request IDs**: `cog_before_invoke` binds a fresh 8-char hex id via `discord_plex.logging_setup.bind_request_id` on every slash command. All downstream `logger.info`/`warning`/`error` calls automatically include the id. Set `LOG_FORMAT=json` for JSON-lines output.
+- **Async file I/O**: blocking `open()` and `pathlib` methods (`read_bytes`, `write_bytes`, `unlink`, etc.) inside `async def` freeze the Discord event loop and stall every concurrent slash command. Wrap them with `asyncio.to_thread(...)` so the I/O runs on a worker thread. Enforced by `ruff` (`ASYNC230`/`ASYNC240`).

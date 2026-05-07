@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/github/v/tag/jdmsharpe/discord-plex?sort=semver&label=version)](https://github.com/jdmsharpe/discord-plex/tags)
 [![License](https://img.shields.io/github/license/jdmsharpe/discord-plex?label=license)](./LICENSE)
 [![CI](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml/badge.svg)](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 
 ## Overview
 
@@ -39,7 +39,7 @@ A Discord bot built for seamless Plex and Overseerr integration. It allows users
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - Discord Bot Token
 - Plex Server & Token
 - Overseerr Server & API Key
@@ -156,8 +156,8 @@ docker run --rm discord-plex-test python -m pytest -q
 docker run --rm discord-plex-test sh -lc 'ruff check src tests && ruff format --check src tests && pyright'
 
 # Smoke-test another supported version
-docker build --build-arg PYTHON_VERSION=3.10 -f Dockerfile.test -t discord-plex-test:3.10 . 
-docker run --rm discord-plex-test:3.10 python -m pytest -q
+docker build --build-arg PYTHON_VERSION=3.11 -f Dockerfile.test -t discord-plex-test:3.11 . 
+docker run --rm discord-plex-test:3.11 python -m pytest -q
 ```
 
 ### Linting & Type Checking
@@ -170,7 +170,7 @@ pyright
 
 ### CI
 
-Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.10-3.13, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
+Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.11-3.13, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
 
 ## License
 
