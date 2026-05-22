@@ -47,7 +47,10 @@ class MediaSelectView(View):
 
     async def _handle_select(self, interaction: Interaction) -> None:
         """Handle selection."""
-        selected_key = self.select.values[0]
+        values = self.select.values or []
+        if not values:
+            return
+        selected_key = values[0]
         selected_item = next(
             (m for m in self.media_items if m.rating_key == selected_key),
             None,
@@ -103,7 +106,10 @@ class RequestSelectView(View):
 
     async def _handle_select(self, interaction: Interaction) -> None:
         """Handle selection."""
-        selected_value: str = self.select.values[0]  # type: ignore[assignment]
+        values = self.select.values or []
+        if not values:
+            return
+        selected_value: str = values[0]
         selected_id = int(selected_value)
         selected_result = next(
             (r for r in self.results if r.tmdb_id == selected_id),
@@ -215,7 +221,7 @@ class SeasonSelectView(View):
 
     async def _handle_select(self, interaction: Interaction) -> None:
         """Handle season selection - store selected seasons."""
-        self.selected_seasons = [int(v) for v in self.select.values]
+        self.selected_seasons = [int(v) for v in (self.select.values or [])]
         # Update the select menu to show selection
         await interaction.response.defer()
 
