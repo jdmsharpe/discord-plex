@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/github/v/tag/jdmsharpe/discord-plex?sort=semver&label=version)](https://github.com/jdmsharpe/discord-plex/tags)
 [![License](https://img.shields.io/github/license/jdmsharpe/discord-plex?label=license)](./LICENSE)
 [![CI](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml/badge.svg)](https://github.com/jdmsharpe/discord-plex/actions/workflows/main.yml)
-[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 
 ## Overview
 
@@ -170,7 +170,7 @@ pyright
 
 ### CI
 
-Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.11-3.13, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
+Tests run automatically on push/PR to `main` via GitHub Actions. CI runs `pytest` across Python 3.11-3.14, builds a Docker smoke test image, and only pushes the release image on direct pushes after both checks pass.
 
 ## License
 
