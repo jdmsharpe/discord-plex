@@ -5,7 +5,10 @@ from types import ModuleType
 from discord import Bot, Intents
 
 
-def test_package_import_registers_cog(monkeypatch):
+async def test_package_import_registers_cog(monkeypatch):
+    # async so pytest-asyncio (auto mode) provides a running event loop —
+    # py-cord's Bot() calls asyncio.get_event_loop(), which raises when no loop
+    # is current (e.g. after pytest-asyncio tears one down on Python 3.11-3.13).
     monkeypatch.setenv("BOT_TOKEN", "discord-token")
     monkeypatch.setenv("PLEX_TOKEN", "plex-token")
     monkeypatch.setenv("OVERSEERR_API_KEY", "overseerr-key")
