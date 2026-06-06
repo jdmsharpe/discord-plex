@@ -178,7 +178,12 @@ def create_recently_added_embed(
         year_str = f" ({item.year})" if item.year else ""
         added = ""
         if item.added_at:
-            days_ago = (datetime.now() - item.added_at).days
+            # plexapi 4.18.1 makes datetime attributes timezone-aware when the
+            # optional timezone is enabled (naive by default). Match the awareness
+            # of added_at so this subtraction never mixes naive and aware datetimes
+            # (which would raise TypeError). datetime.now(None) stays naive.
+            now = datetime.now(item.added_at.tzinfo)
+            days_ago = (now - item.added_at).days
             if days_ago == 0:
                 added = " • Today"
             elif days_ago == 1:

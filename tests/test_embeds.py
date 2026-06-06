@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from discord_plex.cogs.plex.embeds import (
     create_error_embed,
     create_media_embed,
+    create_recently_added_embed,
     create_request_embed,
     create_stream_embed,
     create_success_embed,
@@ -61,6 +62,36 @@ class TestCreateMediaEmbed:
         )
         embed = create_media_embed(media, thumb_url="https://example.com/thumb.jpg")
         assert embed.thumbnail is not None
+
+
+class TestCreateRecentlyAddedEmbed:
+    def _media(self, added_at: datetime | None) -> CachedMedia:
+        return CachedMedia(
+            rating_key="123",
+            title="Test Movie",
+            year=2024,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            added_at=added_at,
+        )
+
+    def test_naive_added_at_renders_days_ago(self):
+        media = [self._media(datetime.now() - timedelta(days=3))]
+        embed = create_recently_added_embed(media, library="Movies")
+        assert "Test Movie" in embed.description
+        assert "3d ago" in embed.description
+
+    def test_timezone_aware_added_at_does_not_raise(self):
+        # plexapi 4.18.1 can return tz-aware datetimes; subtracting a naive
+        # datetime.now() would raise TypeError. The embed must handle both.
+        aware = datetime.now(UTC) - timedelta(days=3)
+        embed = create_recently_added_embed([self._media(aware)], library="Movies")
+        assert "Test Movie" in embed.description
+        assert "3d ago" in embed.description
+
+    def test_no_recent_media(self):
+        embed = create_recently_added_embed([], library="Movies")
+        assert "No recent additions" in embed.description
 
 
 class TestCreateStreamEmbed:
