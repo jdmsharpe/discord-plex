@@ -320,7 +320,7 @@ wheels = [
 
 [[package]]
 name = "discord-plex"
-version = "1.4.0"
+version = "1.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

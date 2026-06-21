@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -129,6 +129,42 @@ class TestLibraryCache:
         assert stats["by_library"]["TV Shows"] == 2
         assert stats["by_library"]["Movies"] == 2
         assert stats["last_refresh"] is not None
+
+    def test_recently_added_mixes_tz_aware_and_none_does_not_raise(self):
+        # plexapi 4.18.1 makes added_at timezone-aware when the optional timezone
+        # is enabled, so a cache can hold a mix of tz-aware and naive/None values.
+        # Sorting must not raise TypeError from comparing naive vs aware datetimes.
+        aware = CachedMedia(
+            rating_key="aware",
+            title="Aware Movie",
+            year=2024,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            added_at=datetime.now(UTC) - timedelta(days=1),
+        )
+        naive = CachedMedia(
+            rating_key="naive",
+            title="Naive Movie",
+            year=2023,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            added_at=datetime.now() - timedelta(days=2),
+        )
+        missing = CachedMedia(
+            rating_key="missing",
+            title="Undated Movie",
+            year=2022,
+            media_type=MediaType.MOVIE,
+            library="Movies",
+            added_at=None,
+        )
+        for item in (aware, naive, missing):
+            self.cache._cache[item.rating_key] = item
+
+        result = self.cache.get_recently_added(limit=10)
+
+        # Newest first; item with no added_at sorts last.
+        assert [m.rating_key for m in result] == ["aware", "naive", "missing"]
 
     @pytest.mark.asyncio
     async def test_shutdown_cancels_background_refresh_task(self):

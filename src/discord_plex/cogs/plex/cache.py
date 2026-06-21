@@ -242,9 +242,13 @@ class LibraryCache:
         if library:
             items = [i for i in items if i.library.lower() == library.lower()]
 
-        # Sort by added_at descending
+        # Sort by added_at descending. plexapi 4.18.1 makes datetime attributes
+        # timezone-aware when the optional timezone is enabled, so added_at can be a
+        # mix of tz-aware and naive (or None) values. Compare on the POSIX timestamp
+        # to sidestep naive/aware comparison entirely (which would raise TypeError),
+        # treating missing added_at as oldest. Same bug class as the v1.4.0 embeds fix.
         items.sort(
-            key=lambda x: x.added_at if x.added_at else datetime.min,
+            key=lambda x: x.added_at.timestamp() if x.added_at else float("-inf"),
             reverse=True,
         )
 
