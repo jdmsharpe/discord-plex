@@ -48,5 +48,7 @@ Thumbs.db
 logs/
 
 # Tool/editor artifacts
-.serena/
+*.egg-info/
 .codex/
+.agents/
+.serena/
