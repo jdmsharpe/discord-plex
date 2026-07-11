@@ -3,8 +3,7 @@
 ## Dev Setup
 
 ```bash
-python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-pip install -e ".[dev]"
+uv sync --extra dev                   # creates .venv from uv.lock (no pip inside — use `uv pip` if needed)
 cp .env.example .env                  # fill in required values
 git config core.hooksPath .githooks   # enable repo pre-commit hook
 ```
