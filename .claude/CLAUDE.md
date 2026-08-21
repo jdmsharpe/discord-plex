@@ -22,7 +22,7 @@ Optional (have defaults):
 
 | Variable | Default | Description |
 | -------- | ------- | ----------- |
-| `GUILD_IDS` | *(empty)* | Comma-separated guild IDs for guild-scoped slash commands |
+| `GUILD_IDS` | *(empty)* | Comma-separated guild IDs for guild-scoped slash commands. Not startup-enforced, but must list at least one ID — empty registers no commands at all |
 | `PLEX_URL` | `http://localhost:32400` | Plex server URL |
 | `OVERSEERR_URL` | `http://localhost:5055` | Overseerr URL |
 | `CACHE_REFRESH_MINUTES` | `30` | Library cache TTL |
@@ -41,7 +41,7 @@ docker compose logs -f  # tail logs
 ## Gotchas
 
 - Uses **`py-cord`** (not `discord.py`). The slash-command API differs; don't mix docs between the two.
-- `GUILD_IDS` empty → commands register globally (up to 1-hour propagation delay). Set it to a test guild ID during development for instant updates.
+- `GUILD_IDS` empty → commands register **nowhere** (not globally, not per-guild): `_parse_csv_int_env` yields `[]`, and py-cord only treats `guild_ids is None` as global. Always set at least one guild ID; a test guild ID during development gives instant updates.
 
 ## Supported Entry Points
 
