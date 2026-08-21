@@ -32,9 +32,9 @@ A Discord bot built for seamless Plex and Overseerr integration. It allows users
 ### `/request` Commands
 
 - **`/request search <query>`**: Search TMDB and request new media via Overseerr.
-- **`/request status`**: View the status of all requests on your Overseerr instance (first 15 shown), not just your own.
-- **`/request queue`**: View all pending requests *(admin only when `ADMIN_USER_ID` is set)*.
-- **`/request approve` / `/request deny`**: Manage and moderate requests *(admin only when `ADMIN_USER_ID` is set)*.
+- **`/request status`**: View up to 15 requests from your Overseerr instance.
+- **`/request queue`**: View pending requests *(restricted by `ADMIN_USER_ID` when set)*.
+- **`/request approve` / `/request deny`**: Manage requests *(restricted by `ADMIN_USER_ID` when set)*.
 
 ## Setup & Installation
 
@@ -80,12 +80,12 @@ python -m pip install -e ".[dev]"
 | Variable | Required | Description |
 | --- | --- | --- |
 | `BOT_TOKEN` | **Yes** | Your Discord bot token |
-| `GUILD_IDS` | **Yes** | Comma-separated Discord server IDs. At least one is required: the bot still starts without it, but no slash commands are registered at all (not even globally) |
-| `PLEX_URL` | No | URL to your Plex server (e.g., `http://your-host:32400`); defaults to `http://localhost:32400` |
+| `GUILD_IDS` | **Yes** | Comma-separated Discord server IDs |
+| `PLEX_URL` | No | Plex server URL (default: `http://localhost:32400`) |
 | `PLEX_TOKEN` | **Yes** | Your Plex authentication token |
-| `OVERSEERR_URL` | No | URL to your Overseerr instance (e.g., `http://your-host:5055`); defaults to `http://localhost:5055` |
+| `OVERSEERR_URL` | No | Overseerr URL (default: `http://localhost:5055`) |
 | `OVERSEERR_API_KEY` | **Yes** | Your Overseerr API key |
-| `ADMIN_USER_ID` | No | Discord user ID allowed to run `/request queue`, `/request approve`, and `/request deny`. If unset, those commands are open to everyone |
+| `ADMIN_USER_ID` | No | Discord user allowed to manage requests; unrestricted if unset |
 | `LOG_FORMAT` | No | `text` (default) for human-readable logs, or `json` for structured JSON-lines output with per-request IDs |
 
 ### Running the Bot
@@ -135,7 +135,7 @@ bot.add_cog(PlexCog(bot=bot))
 
 1. Use the `/plex` commands to explore your current library and monitor server activity.
 2. Use the `/request` commands to search for new content. If requesting a TV show, click the interactive buttons to specify which seasons you want.
-3. Server administrators can use `/request queue` and the approve/deny commands to manage inbound Overseerr requests without leaving Discord.
+3. Use `/request queue` and the approve/deny commands to manage requests; `ADMIN_USER_ID` restricts access when set.
 
 ## Development
 

@@ -67,7 +67,7 @@ async def request_search(
 
 
 async def request_status(cog: PlexCog, ctx: ApplicationContext) -> None:
-    """View status of the user's requests."""
+    """View recent requests from the configured Overseerr instance."""
     await ctx.defer()
 
     requests = await cog.overseerr_client.get_user_requests()
@@ -75,7 +75,7 @@ async def request_status(cog: PlexCog, ctx: ApplicationContext) -> None:
     if not requests:
         await ctx.send_followup(
             embed=Embed(
-                title="📋 Your Requests",
+                title="📋 Recent Requests",
                 description="No requests found.",
                 color=OVERSEERR_COLOR,
             )
@@ -83,7 +83,7 @@ async def request_status(cog: PlexCog, ctx: ApplicationContext) -> None:
         return
 
     embed = create_request_queue_embed(requests[:15])
-    embed.title = "📋 Your Requests"
+    embed.title = "📋 Recent Requests"
     await ctx.send_followup(embed=embed)
 
 

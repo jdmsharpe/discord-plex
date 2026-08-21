@@ -319,13 +319,13 @@ class PlexCog(commands.Cog):
         """View status of user's requests."""
         await request_commands.request_status(self, ctx)
 
-    @request.command(name="queue", description="View all pending requests (Admin)")
+    @request.command(name="queue", description="View all pending requests")
     @is_admin()
     async def request_queue(self, ctx: ApplicationContext) -> None:
-        """View all pending requests (admin only)."""
+        """View all pending requests, subject to the configured admin restriction."""
         await request_commands.request_queue(self, ctx)
 
-    @request.command(name="approve", description="Approve a request (Admin)")
+    @request.command(name="approve", description="Approve a request")
     @option("request_id", description="Request ID to approve", required=True)
     @is_admin()
     async def request_approve(
@@ -336,7 +336,7 @@ class PlexCog(commands.Cog):
         """Approve a pending request."""
         await request_commands.request_approve(self, ctx, request_id)
 
-    @request.command(name="deny", description="Deny a request (Admin)")
+    @request.command(name="deny", description="Deny a request")
     @option("request_id", description="Request ID to deny", required=True)
     @option("reason", description="Reason for denial. (default: not set)", required=False)
     @is_admin()
