@@ -168,6 +168,10 @@ class TestConvertToCachedMedia:
         item.duration = overrides.get("duration", 7200000)
         item.addedAt = overrides.get("addedAt")
         item.guids = overrides.get("guids", [])
+        # Real plexapi objects lack these outside seasons/episodes; without an
+        # explicit None MagicMock would auto-create truthy attributes.
+        item.parentTitle = overrides.get("parentTitle")
+        item.grandparentTitle = overrides.get("grandparentTitle")
         return item
 
     def test_converts_movie(self):
@@ -190,6 +194,27 @@ class TestConvertToCachedMedia:
         assert result.media_type == MediaType.SHOW
         assert result.episode_count == 62
         assert result.season_count == 5
+
+    def test_season_keeps_its_show_title(self):
+        # recentlyAdded() hands back Season objects whose title is just
+        # "Season 1"; the show lives on parentTitle.
+        client = self._make_client()
+        item = self._make_plex_item(type="season", title="Season 1", year=None)
+        item.parentTitle = "The X-Files"
+        result = client._convert_to_cached_media(item, "TV Shows")
+        assert result is not None
+        assert result.media_type == MediaType.SEASON
+        assert result.parent_title == "The X-Files"
+        assert result.full_title == "The X-Files - Season 1"
+
+    def test_episode_keeps_its_show_title(self):
+        client = self._make_client()
+        item = self._make_plex_item(type="episode", title="Pilot", year=None)
+        item.parentTitle = "Season 1"
+        item.grandparentTitle = "The X-Files"
+        result = client._convert_to_cached_media(item, "TV Shows")
+        assert result is not None
+        assert result.full_title == "The X-Files - Pilot"
 
     def test_movie_has_no_episode_count(self):
         client = self._make_client()

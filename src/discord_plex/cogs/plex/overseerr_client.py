@@ -1,6 +1,7 @@
 import contextlib
 import logging
 from datetime import datetime
+from urllib.parse import quote, urlencode
 
 import aiohttp
 
@@ -11,6 +12,10 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class OverseerrError(Exception):
+    """Raised when an Overseerr API call fails (transport error or non-2xx status)."""
 
 
 class OverseerrClient:
@@ -38,39 +43,74 @@ class OverseerrClient:
             await self._session.close()
             self._session = None
 
+    @staticmethod
+    def _encode_query(params: dict) -> str:
+        """Percent-encode query params, spacing as %20 rather than +.
+
+        Overseerr/Seerr 3.4.1 rejects '+'-encoded spaces with HTTP 400
+        "Parameter 'query' must be url encoded", so the query string is built
+        here and appended to the URL already encoded. aiohttp's own ``params=``
+        mapping would hand the dict to yarl, which emits form-style '+'; yarl
+        requotes a finished query string without touching valid percent
+        sequences, so the encoding survives the round trip.
+        """
+        return urlencode(params, quote_via=quote)
+
     async def _request(
         self,
         method: str,
         endpoint: str,
         json: dict | None = None,
         params: dict | None = None,
+        raise_on_error: bool = False,
     ) -> dict | None:
-        """Make an API request."""
+        """Make an API request.
+
+        Returns ``None`` when the call fails, which most callers treat as "no
+        data". Pass ``raise_on_error=True`` to get an :class:`OverseerrError`
+        carrying the status and body instead, so a caller can tell a genuinely
+        empty response apart from an unreachable or rejecting server.
+        """
         session = await self._get_session()
         url = f"{self.base_url}/api/v1{endpoint}"
+        if params:
+            url = f"{url}?{self._encode_query(params)}"
 
         try:
-            async with session.request(method, url, json=json, params=params) as response:
+            async with session.request(method, url, json=json) as response:
                 if response.status == 200 or response.status == 201:
                     return await response.json()
                 if response.status == 404:
                     logger.warning(f"Not found: {endpoint}")
+                    if raise_on_error:
+                        raise OverseerrError(f"Not found: {endpoint}")
                     return None
                 text = await response.text()
                 logger.error(f"API error {response.status}: {text}")
+                if raise_on_error:
+                    raise OverseerrError(f"HTTP {response.status}: {text.strip()[:200]}")
                 return None
+        except OverseerrError:
+            raise
         except Exception as e:
             logger.error(f"Request error for {endpoint}: {e}")
+            if raise_on_error:
+                raise OverseerrError(str(e) or e.__class__.__name__) from e
             return None
 
     async def search(self, query: str, page: int = 1) -> list[OverseerrSearchResult]:
-        """Search for movies and TV shows."""
+        """Search for movies and TV shows.
+
+        Raises:
+            OverseerrError: the server was unreachable or rejected the search.
+        """
         results = []
         logger.debug(f"Overseerr search: query='{query}'")
         data = await self._request(
             "GET",
             "/search",
             params={"query": query, "page": page},
+            raise_on_error=True,
         )
 
         if not data or "results" not in data:

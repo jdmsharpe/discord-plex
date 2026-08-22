@@ -6,6 +6,7 @@ from .cache import CacheStats
 from .models import (
     ActiveStream,
     CachedMedia,
+    MediaType,
     OverseerrRequest,
     OverseerrSearchResult,
 )
@@ -15,6 +16,17 @@ PLEX_COLOR = Colour.from_rgb(229, 160, 13)
 OVERSEERR_COLOR = Colour.from_rgb(92, 107, 192)
 SUCCESS_COLOR = Colour.green()
 ERROR_COLOR = Colour.red()
+
+# Plural labels for the raw MediaType values keying CacheStats["by_type"].
+_TYPE_LABELS = {
+    MediaType.MOVIE.value: "Movies",
+    MediaType.SHOW.value: "Shows",
+    MediaType.SEASON.value: "Seasons",
+    MediaType.EPISODE.value: "Episodes",
+    MediaType.ARTIST.value: "Artists",
+    MediaType.ALBUM.value: "Albums",
+    MediaType.TRACK.value: "Tracks",
+}
 
 
 def truncate(text: str, max_length: int = 4096) -> str:
@@ -190,7 +202,7 @@ def create_recently_added_embed(
                 added = " • Yesterday"
             else:
                 added = f" • {days_ago}d ago"
-        lines.append(f"{item.type_emoji} **{item.title}**{year_str}{added}")
+        lines.append(f"{item.type_emoji} **{item.full_title}**{year_str}{added}")
 
     embed.description = "\n".join(lines)
     return embed
@@ -301,6 +313,11 @@ def create_request_queue_embed(requests: list[OverseerrRequest]) -> Embed:
     return embed
 
 
+def _type_label(media_type: str) -> str:
+    """Return the plural display label for a raw MediaType value."""
+    return _TYPE_LABELS.get(media_type, f"{media_type.title()}s")
+
+
 def create_server_stats_embed(
     server_info: dict,
     cache_stats: CacheStats,
@@ -335,7 +352,7 @@ def create_server_stats_embed(
     # Library stats
     if cache_stats:
         by_type = cache_stats["by_type"]
-        type_lines = [f"{t.title()}: {c}" for t, c in sorted(by_type.items())]
+        type_lines = [f"{_type_label(t)}: {c}" for t, c in sorted(by_type.items())]
         embed.add_field(
             name="Library",
             value="\n".join(type_lines) or "No data",

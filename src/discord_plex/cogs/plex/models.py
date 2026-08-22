@@ -13,6 +13,10 @@ class MediaType(Enum):
     TRACK = "track"
 
 
+# Types whose Plex title is only meaningful alongside their parent's.
+_NESTED_TYPES = frozenset({MediaType.SEASON, MediaType.EPISODE, MediaType.ALBUM, MediaType.TRACK})
+
+
 class RequestStatus(Enum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -40,6 +44,22 @@ class CachedMedia:
     season_count: int | None = None  # For shows
     tmdb_id: int | None = None  # TMDB ID for poster lookup
     imdb_id: str | None = None  # IMDB ID (tt1234567 format)
+    parent_title: str | None = None  # Show for a season, album for a track
+    grandparent_title: str | None = None  # Show for an episode, artist for a track
+
+    @property
+    def full_title(self) -> str:
+        """Return the title qualified by its parent, for nested media types.
+
+        Plex names a season "Season 1"/"Specials" and an episode by episode
+        title alone, so items pulled from a "recently added" feed are
+        indistinguishable without the show (or artist) they belong to.
+        Top-level types are returned unchanged.
+        """
+        parent = self.grandparent_title or self.parent_title
+        if parent and self.media_type in _NESTED_TYPES:
+            return f"{parent} - {self.title}"
+        return self.title
 
     @property
     def display_title(self) -> str:

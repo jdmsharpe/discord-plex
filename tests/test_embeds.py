@@ -5,6 +5,7 @@ from discord_plex.cogs.plex.embeds import (
     create_media_embed,
     create_recently_added_embed,
     create_request_embed,
+    create_server_stats_embed,
     create_stream_embed,
     create_success_embed,
     truncate,
@@ -92,6 +93,63 @@ class TestCreateRecentlyAddedEmbed:
     def test_no_recent_media(self):
         embed = create_recently_added_embed([], library="Movies")
         assert "No recent additions" in embed.description
+
+    def test_season_shows_its_show_title(self):
+        # library.recentlyAdded() returns Season objects titled only "Season 1";
+        # without the show name every TV addition looks identical.
+        season = CachedMedia(
+            rating_key="6374",
+            title="Season 1",
+            year=None,
+            media_type=MediaType.SEASON,
+            library="TV Shows",
+            added_at=datetime.now(),
+            parent_title="The X-Files",
+        )
+        embed = create_recently_added_embed([season], library="TV Shows")
+        assert "The X-Files - Season 1" in embed.description
+
+    def test_episode_shows_its_show_title(self):
+        episode = CachedMedia(
+            rating_key="99",
+            title="Pilot",
+            year=None,
+            media_type=MediaType.EPISODE,
+            library="TV Shows",
+            added_at=datetime.now(),
+            parent_title="Season 1",
+            grandparent_title="The X-Files",
+        )
+        embed = create_recently_added_embed([episode], library="TV Shows")
+        assert "The X-Files - Pilot" in embed.description
+
+    def test_movie_title_is_not_prefixed(self):
+        movie = self._media(datetime.now())
+        movie.parent_title = "Some Collection"
+        embed = create_recently_added_embed([movie], library="Movies")
+        assert "**Test Movie**" in embed.description
+
+
+class TestCreateServerStatsEmbed:
+    def _stats(self, by_type: dict[str, int]) -> dict:
+        return {
+            "total_items": sum(by_type.values()),
+            "by_type": by_type,
+            "by_library": {"Movies": 1071, "TV Shows": 46},
+            "last_refresh": None,
+            "is_stale": False,
+        }
+
+    def test_type_counts_are_pluralised(self):
+        embed = create_server_stats_embed({}, self._stats({"movie": 1071, "show": 84}))
+        library_field = next(f for f in embed.fields if f.name == "Library")
+        assert "Movies: 1071" in library_field.value
+        assert "Shows: 84" in library_field.value
+
+    def test_unknown_type_falls_back_to_naive_plural(self):
+        embed = create_server_stats_embed({}, self._stats({"photo": 3}))
+        library_field = next(f for f in embed.fields if f.name == "Library")
+        assert "Photos: 3" in library_field.value
 
 
 class TestCreateStreamEmbed:

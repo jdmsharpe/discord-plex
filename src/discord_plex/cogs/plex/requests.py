@@ -6,6 +6,7 @@ from discord import ApplicationContext, Embed, Interaction
 
 from .embeds import OVERSEERR_COLOR, create_error_embed, create_request_queue_embed
 from .models import OverseerrSearchResult
+from .overseerr_client import OverseerrError
 from .views import RequestSelectView
 
 if TYPE_CHECKING:
@@ -27,7 +28,17 @@ async def request_search(
         query,
         media_type or "any",
     )
-    results = await cog.overseerr_client.search(query)
+    try:
+        results = await cog.overseerr_client.search(query)
+    except OverseerrError as exc:
+        cog.logger.error("Overseerr search failed for '%s': %s", query, exc)
+        await ctx.send_followup(
+            embed=create_error_embed(
+                f'Overseerr could not complete the search for "{query}".\n{exc}',
+                title="Search failed",
+            )
+        )
+        return
 
     if media_type:
         results = [result for result in results if result.media_type == media_type]

@@ -84,6 +84,10 @@ class PlexClientWrapper:
                 added_at=getattr(item, "addedAt", None),
                 tmdb_id=tmdb_id,
                 imdb_id=imdb_id,
+                # Seasons/episodes arrive from recentlyAdded titled only
+                # "Season 1" or by episode name; keep the show they belong to.
+                parent_title=getattr(item, "parentTitle", None),
+                grandparent_title=getattr(item, "grandparentTitle", None),
             )
 
             # Add show-specific info
