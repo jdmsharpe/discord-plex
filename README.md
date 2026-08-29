@@ -91,6 +91,7 @@ python -m pip install -e ".[dev]"
 | `OVERSEERR_URL` | No | Overseerr URL (default: `http://localhost:5055`) |
 | `OVERSEERR_API_KEY` | **Yes** | Your Overseerr API key |
 | `ADMIN_USER_ID` | No | Discord user allowed to manage requests; unrestricted if unset |
+| `CACHE_REFRESH_MINUTES` | No | Library cache TTL in minutes (default: `30`) |
 | `LOG_FORMAT` | No | `text` (default) for human-readable logs, or `json` for structured JSON-lines output with per-request IDs |
 
 ### Running the Bot
