@@ -110,6 +110,7 @@ pytest -q
 - `discord_plex.cogs.plex.cog` owns cog lifecycle and slash-command registration.
 - Plex library command flows are delegated through `discord_plex.cogs.plex.library`.
 - Overseerr request command flows are delegated through `discord_plex.cogs.plex.requests`.
+- `OverseerrClient.get_user_requests` (used by `/request status` and the pending queue) sends `take=15`. Seerr returns 10 requests per page when `take` is absent (`server/routes/request.ts`), so until 2026-10-15 both views showed at most 10 of the 15 the embeds list. Seerr 3.5.0 returns 409 when approving or declining a request that is not pending; the bot reports that as "may not exist or already be processed". Pinned by `test_get_user_requests_asks_for_fifteen_requests` and `test_get_pending_requests_sends_filter_and_take` (`tests/test_overseerr_client.py`).
 - Keep `python src/bot.py` working when refactoring further.
 
 ## Runtime Conventions (Cross-Project)

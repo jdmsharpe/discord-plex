@@ -184,9 +184,11 @@ class OverseerrClient:
         self,
         user_id: int | None = None,
         status: str | None = None,
+        take: int = 15,
     ) -> list[OverseerrRequest]:
-        """Get requests, optionally filtered by user or status."""
-        params = {}
+        """Get up to `take` requests, optionally filtered by user or status."""
+        # Seerr returns 10 requests per page when `take` is not sent.
+        params: dict[str, str | int] = {"take": take}
         if status:
             params["filter"] = status
 

@@ -180,3 +180,25 @@ class TestOverseerrClient:
 
         assert await client.search("nothing matches this") == []
         await client.close()
+
+    async def test_get_user_requests_asks_for_fifteen_requests(self):
+        """Seerr pages 10 requests unless `take` is sent, so /request status
+        could never show the 15 it lists."""
+        client = OverseerrClient("http://test:5055", "test-api-key")
+        client._request = AsyncMock(return_value={"results": []})
+
+        await client.get_user_requests()
+
+        client._request.assert_awaited_once_with("GET", "/request", params={"take": 15})
+        await client.close()
+
+    async def test_get_pending_requests_sends_filter_and_take(self):
+        client = OverseerrClient("http://test:5055", "test-api-key")
+        client._request = AsyncMock(return_value={"results": []})
+
+        await client.get_pending_requests()
+
+        client._request.assert_awaited_once_with(
+            "GET", "/request", params={"take": 15, "filter": "pending"}
+        )
+        await client.close()
