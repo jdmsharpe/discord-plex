@@ -6,6 +6,7 @@
 uv sync --extra dev                   # creates .venv from uv.lock (no pip inside — use `uv pip` if needed)
 cp .env.example .env                  # fill in required values
 git config core.hooksPath .githooks   # enable repo pre-commit hook
+uv run python src/bot.py              # or: docker compose up -d (see Docker)
 ```
 
 ## Environment Variables
@@ -99,11 +100,13 @@ Only `src/bot.py` remains at the repo root; code imports should target `discord_
 ## Validation Commands
 
 ```bash
-ruff check src/ tests/
-ruff format src/ tests/
-pyright src/
-pytest -q
+uv run ruff check src/ tests/
+uv run ruff format src/ tests/
+uv run pyright src/
+uv run pytest -q
 ```
+
+- The repo pre-commit hook (`.githooks/pre-commit`) runs `ruff format` (auto-applied + re-staged), then `ruff check` (blocking), then `pyright` and `pytest --collect-only` as warning-only smoke tests. Resolves tools from `.venv/bin` or `.venv/Scripts` first, then `PATH`.
 
 ## Provider Notes
 
@@ -116,6 +119,5 @@ pytest -q
 ## Runtime Conventions (Cross-Project)
 
 - Unlike the AI bots in this family, discord-plex does not use a pricing YAML — it has no token-based API costs.
-- The repo pre-commit hook (`.githooks/pre-commit`) runs `ruff format` (auto-applied + re-staged), then `ruff check` (blocking), then `pyright` and `pytest --collect-only` as warning-only smoke tests. Resolves tools from `.venv/bin` or `.venv/Scripts` first, then `PATH`.
 - **Request IDs**: `cog_before_invoke` binds a fresh 8-char hex id via `discord_plex.logging_setup.bind_request_id` on every slash command. All downstream `logger.info`/`warning`/`error` calls automatically include the id. Set `LOG_FORMAT=json` for JSON-lines output.
 - **Async file I/O**: blocking `open()` and `pathlib` methods (`read_bytes`, `write_bytes`, `unlink`, etc.) inside `async def` freeze the Discord event loop and stall every concurrent slash command. Wrap them with `asyncio.to_thread(...)` so the I/O runs on a worker thread. Enforced by `ruff` (`ASYNC230`/`ASYNC240`).
